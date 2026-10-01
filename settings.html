@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'">
+<title>设置</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #1a1a1e; color: #e6e6e6;
+    font: 14px/1.5 -apple-system, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+    padding: 22px 22px 18px;
+    user-select: none;
+  }
+  h1 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+  .row { margin-bottom: 18px; }
+  .row > label { display: block; font-weight: 500; margin-bottom: 8px; opacity: .9; }
+  .desc { font-size: 12px; opacity: .6; margin-top: 4px; }
+  .opt { display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; }
+  .opt input { cursor: pointer; accent-color: #6c8cff; }
+  .radios { display: flex; flex-wrap: wrap; gap: 10px; }
+  .radios label { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border: 1px solid #3a3a40; border-radius: 8px; cursor: pointer; }
+  .radios label:has(input:checked) { border-color: #6c8cff; background: #23233c; }
+  .radios input { accent-color: #6c8cff; }
+  .toggle { position: relative; width: 42px; height: 24px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; inset: 0; background: #3a3a40; border-radius: 24px; transition: .2s; }
+  .slider::before { content: ""; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .2s; }
+  .toggle input:checked + .slider { background: #6c8cff; }
+  .toggle input:checked + .slider::before { transform: translateX(18px); }
+  .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
+  button { padding: 8px 18px; border-radius: 8px; border: 1px solid #3a3a40; background: #26262c; color: #e6e6e6; cursor: pointer; font-size: 14px; }
+  button.primary { background: #6c8cff; border-color: #6c8cff; color: #12121a; font-weight: 600; }
+  button:hover { filter: brightness(1.1); }
+</style>
+</head>
+<body>
+  <h1>设置</h1>
+
+  <div class="row">
+    <label class="opt">
+      <span class="toggle"><input type="checkbox" id="autoRefresh"><span class="slider"></span></span>
+      自动刷新
+    </label>
+    <div class="desc">开启后按设定间隔自动刷新所有已加载的新闻源。</div>
+  </div>
+
+  <div class="row">
+    <label>刷新间隔</label>
+    <div class="radios" id="intervals">
+      <label><input type="radio" name="interval" value="5"> 5 分钟</label>
+      <label><input type="radio" name="interval" value="10"> 10 分钟</label>
+      <label><input type="radio" name="interval" value="15"> 15 分钟</label>
+      <label><input type="radio" name="interval" value="30"> 30 分钟</label>
+      <label><input type="radio" name="interval" value="60"> 60 分钟</label>
+    </div>
+  </div>
+
+  <div class="row">
+    <label class="opt">
+      <span class="toggle"><input type="checkbox" id="viewerInApp"><span class="slider"></span></span>
+      内置阅读器查看
+    </label>
+    <div class="desc">点击新闻在程序内部阅读器打开；关闭则用系统浏览器打开。</div>
+  </div>
+
+  <div class="actions">
+    <button id="cancel">取消</button>
+    <button id="save" class="primary">保存</button>
+  </div>
+
+<script>
+  const $ = (id) => document.getElementById(id)
+  ;(async () => {
+    const cfg = await window.settings.load()
+    $("autoRefresh").checked = cfg.autoRefresh
+    $("viewerInApp").checked = cfg.viewerInApp
+    document.querySelectorAll('input[name="interval"]').forEach((r) => {
+      r.checked = Number(r.value) === cfg.intervalMinutes
+    })
+  })()
+
+  $("save").addEventListener("click", async () => {
+    const interval = Number(document.querySelector('input[name="interval"]:checked')?.value || 10)
+    await window.settings.save({
+      autoRefresh: $("autoRefresh").checked,
+      intervalMinutes: interval,
+      viewerInApp: $("viewerInApp").checked,
+    })
+    await window.settings.close()
+  })
+  $("cancel").addEventListener("click", () => window.settings.close())
+</script>
+</body>
+</html>

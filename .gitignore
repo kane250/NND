@@ -1,0 +1,21 @@
+# 依赖（平台特定，需 setup 安装）
+app/server/node_modules/
+
+# 运行时缓存
+.data/
+
+# 临时文件
+*.log
+*.tmp
+.temp/
+
+# 系统/IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Electron 构建/打包输出
+dist/
+out/
+release/

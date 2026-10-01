@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=NewsNow 桌面版
+GenericName=NewsNow Desktop
+Comment=选择订阅、定期/按需刷新、内置阅读器查看新闻
+Exec=/home/kene/.local/share/TeleAgent/TeleAgent的工作空间/NewsNow-Desktop/start.sh
+Icon=newspaper
+Terminal=false
+Categories=Network;News;
+StartupWMClass=NewsNow 桌面版
+Keywords=news;新闻;订阅;聚合;

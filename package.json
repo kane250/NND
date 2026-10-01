@@ -1,0 +1,12 @@
+{
+  "name": "newsnow-desktop",
+  "version": "1.0.0",
+  "description": "NewsNow 桌面版 —— 选择订阅、定期/按需刷新、内置阅读器查看新闻",
+  "main": "main.cjs",
+  "author": "TeleAgent",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron ."
+  }
+}
