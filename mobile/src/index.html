@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f0f0f" />
+  <title>NewsNow</title>
+  <link rel="icon" type="image/png" href="pwa-192x192.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f0f0f; --bg-card: #1a1a1e; --bg-card-hover: #22222a;
+      --text: #e6e6e6; --text-dim: #888; --text-muted: #555;
+      --border: #333; --accent: #f14d42;
+    }
+    html, body { height: 100%; }
+    body {
+      background: var(--bg); color: var(--text);
+      font: 14px/1.5 -apple-system, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .app { max-width: 100%; min-height: 100vh; }
+
+    /* Header */
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; position: sticky; top: 0; z-index: 100;
+      background: var(--bg); border-bottom: 1px solid var(--border);
+    }
+    .logo { font-size: 18px; font-weight: 700; color: var(--accent); }
+    .nav { display: flex; gap: 8px; }
+    .nav-item {
+      padding: 6px 14px; border: none; border-radius: 8px;
+      background: transparent; color: var(--text-dim); font-size: 14px;
+      cursor: pointer; transition: all .2s;
+    }
+    .nav-item.active { background: var(--accent); color: #fff; }
+    .refresh-all {
+      padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px;
+      background: var(--bg-card); color: var(--text); font-size: 13px;
+      cursor: pointer;
+    }
+    .refresh-all:active { background: var(--bg-card-hover); }
+
+    /* Columns */
+    .columns { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+
+    /* Card */
+    .card {
+      background: var(--bg-card); border-radius: 12px; border-left: 3px solid var(--border);
+      overflow: hidden;
+    }
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px; border-bottom: 1px solid var(--border);
+    }
+    .card-title { display: flex; align-items: center; gap: 8px; }
+    .card-name { font-size: 16px; font-weight: 600; }
+    .card-subtitle {
+      font-size: 11px; padding: 2px 6px; border-radius: 4px;
+      background: var(--bg-card-hover); color: var(--text-dim);
+    }
+    .card-refresh {
+      width: 28px; height: 28px; border: none; border-radius: 50%;
+      background: transparent; color: var(--text-dim); font-size: 16px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .card-refresh.spinning { animation: spin 1s linear infinite; }
+    .card-refresh:active { color: var(--text); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Card body */
+    .card-body { padding: 8px 14px 12px; max-height: 400px; overflow-y: auto; }
+    .loading, .error { padding: 20px; text-align: center; color: var(--text-dim); }
+    .error { color: var(--accent); }
+
+    /* News list */
+    .news-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .news-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; }
+    .news-rank {
+      min-width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; background: var(--bg-card-hover); color: var(--text-dim);
+    }
+    .news-link { flex: 1; text-decoration: none; color: var(--text); display: flex; flex-direction: column; gap: 2px; }
+    .news-link:active { color: var(--accent); }
+    .news-link:visited { color: var(--text-muted); }
+    .news-title { font-size: 14px; line-height: 1.4; }
+    .news-info { font-size: 12px; color: var(--text-dim); }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

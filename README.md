@@ -1,125 +1,196 @@
-# NewsNow Desktop
+# NewsNow Desktop & Mobile
 
-基于 [newsnext/newsnow](https://github.com/newsnext/newsnow) 改造的 **跨平台桌面新闻聚合阅读器**，支持 **Linux** 和 **Windows**。
+基于 [newsnext/newsnow](https://github.com/newsnext/newsnow) 改造的**跨平台新闻聚合阅读器**，支持 **Linux、Windows、Android、iOS** 四平台。
 
-使用 Electron 封装 NewsNow 完整服务端 + 前端，并增加桌面专属能力：选择订阅、定期/按需刷新、内置阅读器查看新闻。
+| 平台 | 技术方案 | 状态 |
+| --- | --- | --- |
+| **Linux** | Electron 封装 + 内置 nitro 服务端 | ✅ 可用 |
+| **Windows** | Electron 封装 + 内置 nitro 服务端 | ✅ 可用 |
+| **Android** | Capacitor + 原生 HTTP 直抓（无后端） | ✅ 可构建 APK |
+| **iOS** | Capacitor + 原生 HTTP 直抓（无后端） | 📱 代码已生成，需 Mac+Xcode 构建 |
 
 ## 功能特性
 
-| 功能 | 说明 |
-| --- | --- |
-| **选择订阅** | 顶部「更多」标签打开新闻源订阅面板，按分类浏览全部 66 个新闻源，星标收藏 / 取消，点击查看。订阅状态与栏目布局持久化在本地。 |
-| **定期刷新** | 自动刷新定时器，默认每 10 分钟刷新所有已加载的新闻源；可在「设置」中选择 5/10/15/30/60 分钟间隔或关闭。 |
-| **按需刷新** | 每个新闻源卡片右上角 ↻ 按钮单独刷新；菜单「视图 → 刷新全部」或快捷键 **Ctrl+R** 一次刷新所有可见源。 |
-| **新闻列表** | 主界面以卡片形式展示各订阅源的热榜 / 时间线列表，含标题、热度、发布时间、排序变化等。 |
-| **内置阅读器** | 点击任意新闻 → 在同一窗口内弹出阅读器（顶部工具栏：后退 / 前进 / 重新加载 / 地址栏 / 在系统浏览器打开 / 返回列表），直接阅读正文，无需跳转外部浏览器。 |
+- **选择订阅**：浏览全部 66 个新闻源（知乎/微博/百度/36氪/B站等），星标订阅，分类管理
+- **定期刷新**：自动刷新定时器（5/10/15/30/60 分钟可配），服务端按各源自身间隔缓存
+- **按需刷新**：单源刷新按钮 + 一键刷新全部（Ctrl+R）
+- **新闻列表**：卡片式热榜/时间线，含标题、热度、发布时间、排序变化
+- **内置阅读器**（桌面端）：点击新闻在程序内部查看，支持后退/前进/地址栏导航
+- **移动端适配**：响应式布局，原生 HTTP 绕过 CORS，本地缓存离线可用
 
-## 截图
-
-| 新闻列表 | 内置阅读器 | 选择订阅 |
-|:---:|:---:|:---:|
-| ![新闻列表](screenshots/01-news-list.png) | ![内置阅读器](screenshots/02-built-in-reader.png) | ![选择订阅](screenshots/03-subscribe.png) |
-
-## 系统要求
-
-| 依赖 | Linux | Windows |
-| --- | --- | --- |
-| **Node.js** v18+ | `sudo pacman -S nodejs` (Arch) / 从 [nodejs.org](https://nodejs.org/) 安装 | 从 [nodejs.org](https://nodejs.org/) 安装 |
-| **Electron** | `sudo pacman -S electron` (Arch) / `sudo snap install electron` (Ubuntu) | `npm install -g electron` |
-| 编译工具（仅 setup 时） | `sudo pacman -S base-devel python3` (Arch) / `sudo apt install build-essential python3` (Ubuntu) | [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) (C++ 桌面开发) |
-
-## 快速开始
-
-### 方式一：下载 Release（推荐）
-
-1. 从 [GitHub Release](../../releases) 下载对应平台的压缩包
-2. 解压后运行安装脚本安装原生依赖：
-   - **Linux**: `./setup.sh`
-   - **Windows**: 双击 `setup.bat`
-3. 启动应用：
-   - **Linux**: `./start.sh`
-   - **Windows**: 双击 `start.bat`
-
-### 方式二：从源码构建
-
-```bash
-git clone https://github.com/kane250/newsnow-desktop.git
-cd newsnow-desktop
-
-# 1. 构建 NewsNow 前端+服务端（需要 pnpm）
-./build.sh        # Linux/macOS
-# Windows: bash build.sh (需要 Git Bash)
-
-# 2. 安装原生依赖
-./setup.sh        # Linux/macOS
-setup.bat         # Windows
-
-# 3. 启动
-./start.sh        # Linux/macOS
-start.bat         # Windows
-```
-
-### Linux 桌面菜单集成
-
-```bash
-mkdir -p ~/.local/share/applications
-cp NewsNow-Desktop.desktop ~/.local/share/applications/
-update-desktop-database ~/.local/share/applications 2>/dev/null || true
-```
-
-安装后在应用列表搜索「NewsNow 桌面版」点击启动。
-
-## 操作说明
-
-| 操作 | 方式 |
-| --- | --- |
-| 刷新单个源 | 卡片右上角 ↻ 按钮 |
-| 刷新全部 | 菜单「视图 → 刷新全部」或 **Ctrl+R** |
-| 打开设置 | 菜单「NewsNow → 设置…」或 **Ctrl+,** |
-| 阅读新闻 | 点击列表标题 → 内置阅读器打开 |
-| 阅读器后退 / 前进 | 工具栏 ◀ ▶ 或 **Alt+← / Alt+→** |
-| 阅读器地址栏导航 | 在地址栏输入网址回车 |
-| 在系统浏览器打开 | 阅读器工具栏 ⤢ 按钮 |
-| 返回新闻列表 | 阅读器工具栏 ✕ 或 **Esc** |
-| 重新加载正文 | 工具栏 ↻ 或 **Ctrl+Shift+R** |
-
-## 设置项
-
-- **自动刷新**：开/关
-- **刷新间隔**：5 / 10 / 15 / 30 / 60 分钟
-- **内置阅读器查看**：开（点击在程序内打开）/ 关（点击用系统浏览器打开）
-
-配置文件保存在用户数据目录下 `newsnow-desktop/config.json`（含窗口位置记忆）。
-
-## 技术架构
+## 项目结构
 
 ```
 newsnow-desktop/
-├── app/                      # NewsNow 构建产物（自包含，不含 node_modules）
-│   ├── server/               # nitro(h3) 服务端 + better-sqlite3 缓存
-│   │   ├── index.mjs        # 服务端入口
-│   │   ├── package.json      # 依赖声明（setup 时安装）
-│   │   └── chunks/           # 服务端代码块
-│   └── public/               # React 前端静态资源
-├── main.cjs                  # Electron 主进程：启动 nitro 子进程、主窗口、内置阅读器、定时刷新、菜单
-├── viewer.html               # 阅读器工具栏 UI
-├── viewer-preload.cjs        # 阅读器预加载（IPC 桥）
-├── settings.html             # 设置窗口 UI
-├── settings-preload.cjs      # 设置预加载
-├── start.sh / start.bat      # 跨平台启动脚本
-├── setup.sh / setup.bat      # 跨平台依赖安装脚本
-├── build.sh                  # 从源码构建 NewsNow
-├── package.json
-└── README.md
+├── main.cjs              # Electron 主进程（桌面端）
+├── viewer.html            # 桌面端内置阅读器 UI
+├── settings.html          # 桌面端设置窗口
+├── start.sh / start.bat   # 桌面端启动脚本
+├── setup.sh / setup.bat   # 桌面端依赖安装
+├── build.sh               # 从源码构建 NewsNow
+├── app/                    # NewsNow 构建产物（nitro 服务端 + React 前端）
+│   ├── server/           #   nitro(h3) + better-sqlite3 缓存
+│   └── public/           #   React 静态资源
+└── mobile/                 # 移动端（Capacitor）
+    ├── capacitor.config.ts #   Capacitor 配置（原生 HTTP 已启用）
+    ├── build-web.mjs      #   Web 资源构建脚本（esbuild）
+    ├── src/               #   移动端源码
+    │   ├── app.tsx        #     React 应用入口
+    │   ├── fetch.ts       #     跨平台 HTTP 客户端（原生/浏览器自动切换）
+    │   ├── api.ts         #     前端 API 层（替代后端 API）
+    │   ├── getters.ts     #     66 源注册表 + fetchSource
+    │   ├── cache.ts       #     本地缓存（Preferences/localStorage）
+    │   ├── sources/       #     66 个新闻源抓取逻辑（移植自服务端）
+    │   ├── date.ts        #     中文相对时间解析
+    │   ├── rss.ts         #     RSS/Atom 解析
+    │   └── sources-data.json # 源元数据
+    ├── android/           #   Android 原生项目（Gradle 构建）
+    ├── ios/               #   iOS 原生项目（需 Mac+Xcode 构建）
+    ├── www/               #   构建产物（Capacitor webDir）
+    └── release/           #   APK 输出
 ```
 
-- **前端**：原版 NewsNow（React 19 + Vite + UnoCSS + TanStack Router），不做改动，整包构建后随程序分发。
-- **后端**：原版 nitro(h3) node-server，本地 better-sqlite3 缓存，随机空闲端口监听 127.0.0.1。
-- **桌面壳**：Electron 主进程拉起 nitro 子进程，就绪后加载 `http://127.0.0.1:<port>/`。
-- **内置阅读器**：拦截 `target=_blank` / `window.open`，用 `WebContentsView` 在主窗口内覆盖一层工具栏 + 正文视图。
-- **定时刷新**：`setInterval` 调用 `refreshAll()`，通过 `webContents.executeJavaScript` 点击页面内各源刷新按钮。
-- **跨平台**：Linux 使用 `SIGTERM` 终止子进程；Windows 使用 `taskkill /f /t` 终止进程树。better-sqlite3 原生模块通过 setup 脚本在目标平台本地安装，确保 ABI 兼容。
+## 移动端架构
+
+移动端无法运行 Node.js 服务端，采用**前端直抓**架构：
+
+```
+┌─────────────────────────────────────┐
+│         Capacitor WebView           │
+│  ┌───────────────────────────────┐  │
+│  │      React 前端（app.tsx）      │  │
+│  ├───────────────────────────────┤  │
+│  │   前端 API 层（api.ts）         │  │
+│  │   · getSourceData(id)         │  │
+│  │   · 缓存检查 → 抓取 → 存缓存    │  │
+│  ├───────────────────────────────┤  │
+│  │   66 源抓取器（sources/*.ts）   │  │
+│  │   · JSON API / HTML / RSS     │  │
+│  ├───────────────────────────────┤  │
+│  │   跨平台 HTTP（fetch.ts）       │  │
+│  │   · Capacitor 原生 HTTP       │  │
+│  │     （绕过 CORS）              │  │
+│  │   · 浏览器 fallback: fetch     │  │
+│  ├───────────────────────────────┤  │
+│  │   本地缓存（cache.ts）          │  │
+│  │   · Capacitor Preferences     │  │
+│  │   · localStorage fallback     │  │
+│  └───────────────────────────────┘  │
+└─────────────────────────────────────┘
+```
+
+**关键设计**：
+- `@capacitor/http`（Capacitor 8 内置 `CapacitorHttp` 插件）在原生平台拦截所有 fetch 请求，用原生 HTTP 发出，**天然绕过 CORS**
+- 缓存用 `@capacitor/preferences`（Android SharedPreferences / iOS UserDefaults），按各源的 `interval` 控制刷新频率
+- 66 个源的抓取逻辑从原项目 `server/sources/*.ts` 移植，依赖替换：
+  - `cheerio`（HTML 解析）→ 使用其 browser 构建
+  - `fast-xml-parser`（RSS 解析）→ 纯 JS，直接可用
+  - `ofetch` → 自研 `fetch.ts` 兼容层（支持 query/headers/responseType/raw）
+  - `iconv-lite`（GBK 编码）→ `TextDecoder("gbk")`
+  - `better-sqlite3`（缓存）→ Preferences/localStorage
+
+## 移动端构建
+
+### 环境要求
+
+| 工具 | Android | iOS |
+| --- | --- | --- |
+| Node.js v18+ | ✅ | ✅ |
+| JDK 17+ | ✅ | - |
+| Android SDK (API 36) | ✅ | - |
+| Gradle 8.14+ | ✅（项目自带 gradlew） | - |
+| macOS + Xcode 15+ | - | ✅ |
+
+### Android APK 构建
+
+```bash
+cd mobile
+
+# 1. 安装依赖
+npm install
+
+# 2. 构建 Web 资源
+node build-web.mjs
+
+# 3. 同步到 Android 项目
+npx cap sync android
+
+# 4. 构建 APK（debug）
+cd android
+export ANDROID_HOME=$HOME/Android/Sdk
+./gradlew assembleDebug
+# 产物: android/app/build/outputs/apk/debug/app-debug.apk
+
+# 构建 Release APK（需签名配置）
+./gradlew assembleRelease
+```
+
+### iOS 构建（需 Mac）
+
+```bash
+cd mobile
+
+# 1. 安装依赖
+npm install
+
+# 2. 构建 Web 资源
+node build-web.mjs
+
+# 3. 同步到 iOS 项目
+npx cap sync ios
+
+# 4. 用 Xcode 打开构建
+npx cap open ios
+# 在 Xcode 中: Product → Build (Cmd+B) / Run (Cmd+R)
+# 或命令行: npx cap build ios
+```
+
+### 移动端开发调试
+
+```bash
+cd mobile
+node build-web.mjs --watch   # 监听 Web 资源变更
+npx cap sync                 # 同步到原生项目
+npx cap open android          # Android Studio 打开
+npx cap open ios              # Xcode 打开
+```
+
+## 桌面端使用
+
+### Linux
+
+```bash
+./setup.sh    # 安装原生依赖
+./start.sh    # 启动
+```
+
+### Windows
+
+```cmd
+setup.bat    & :: 安装原生依赖
+start.bat    & :: 启动
+```
+
+### 操作说明
+
+| 操作 | 方式 |
+| --- | --- |
+| 刷新全部 | **Ctrl+R** |
+| 打开设置 | **Ctrl+,** |
+| 阅读新闻 | 点击标题 → 内置阅读器 |
+| 阅读器后退/前进 | **Alt+← / Alt+→** |
+| 返回新闻列表 | **Esc** |
+
+## 数据源测试结果
+
+移动端前端直抓架构下，66 个源中 **59 个可正常抓取**：
+
+- ✅ 59 源正常（知乎、微博、百度、36氪、B站、Hacker News、GitHub Trending、财联社、华尔街见闻、IT之家等）
+- ⚠️ 7 源受限（原因为外部限制，非代码问题）：
+  - `douyin` / `xueqiu`：需要 cookie（原生 HTTP 环境下可获取，纯浏览器测试环境拿不到 set-cookie）
+  - `pcbeta`：目标站有反爬滑块验证
+  - `qqvideo`：腾讯视频 API 返回数据结构变化
 
 ## 许可
 
-NewsNow 原项目遵循 MIT 协议，本桌面封装同样基于 MIT。
+NewsNow 原项目遵循 MIT 协议，本项目同样基于 MIT。

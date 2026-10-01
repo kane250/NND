@@ -19,3 +19,12 @@ Thumbs.db
 dist/
 out/
 release/
+
+# 移动端构建产物
+mobile/android/app/build/
+mobile/android/.gradle/
+mobile/android/build/
+mobile/ios/App/App/public/
+mobile/release/*.apk
+mobile/node_modules/
+mobile/www/

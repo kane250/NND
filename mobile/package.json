@@ -1,0 +1,37 @@
+{
+  "name": "newsnow-mobile",
+  "version": "1.0.0",
+  "description": "NewsNow 移动端 - iOS/Android 新闻聚合 App",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:web": "node build-web.mjs",
+    "sync": "cap sync",
+    "open:android": "cap open android",
+    "open:ios": "cap open ios",
+    "build:android": "cap build android",
+    "build:ios": "cap build ios"
+  },
+  "dependencies": {
+    "@capacitor/app": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/haptics": "^8.0.0",
+    "@capacitor/keyboard": "^8.0.0",
+    "@capacitor/preferences": "^8.0.0",
+    "@capacitor/splash-screen": "^8.0.0",
+    "@capacitor/status-bar": "^8.0.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/ios": "^8.0.0",
+    "cheerio": "^1.2.0",
+    "dayjs": "^1.11.13",
+    "esbuild": "^0.25.0",
+    "fast-xml-parser": "^5.7.0",
+    "md5": "^2.3.0",
+    "typescript": "^7.0.2"
+  }
+}

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">NewsNow</string>
+    <string name="title_activity_main">NewsNow</string>
+    <string name="package_name">com.kane.newsnow</string>
+    <string name="custom_url_scheme">com.kane.newsnow</string>
+</resources>
