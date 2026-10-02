@@ -37,6 +37,9 @@ cp -r "$TMPDIR/newsnow/dist/output/public/." "$DIR/web/"
 echo "→ 应用前端源配置补丁（注入新源/清理废弃源/生成入口）..."
 node "$DIR/scripts/patch-web-sources.mjs" || echo "[警告] 前端补丁执行失败，请检查"
 
+echo "→ 应用品牌定制补丁（NND logo/版本号/GitHub链接/版权信息）..."
+node "$DIR/scripts/patch-branding.mjs" || echo "[警告] 品牌补丁执行失败，请检查"
+
 echo "→ 构建数据层 data-layer.mjs ..."
 cd "$DIR"
 if [ -d "mobile/node_modules" ] || npm --prefix mobile install &>/dev/null; then

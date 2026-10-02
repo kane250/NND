@@ -14,6 +14,10 @@ const SETTINGS_PRELOAD = path.join(APP_DIR, "settings-preload.cjs")
 
 const VERSION = "2.0.0"
 const BUILD_DATE = "2026-10-02"
+const APP_NAME = "NND"
+const APP_FULL_NAME = "NewsNow Desktop"
+const PROJECT_HOME = "https://github.com/kane250/newsnow-desktop"
+const ORIGINAL_PROJECT = "https://github.com/newsnext/newsnow"
 
 const DEFAULT_CONFIG = {
   autoRefresh: true,
@@ -212,7 +216,7 @@ function registerAppProtocol() {
     badge.id = 'build-badge';
     badge.style.cssText = 'font-size:11px;opacity:.5;font-family:ui-monospace,monospace;padding:0 6px;white-space:nowrap;cursor:default;user-select:none;';
     badge.textContent = 'v' + VERSION + ' · ' + BUILD_DATE;
-    badge.title = 'NewsNow Desktop v' + VERSION + ' (构建于 ' + BUILD_DATE + ')';
+    badge.title = APP_FULL_NAME + ' v' + VERSION + ' (构建于 ' + BUILD_DATE + ')';
     right.insertBefore(badge, right.firstChild);
   }
   if (document.readyState === 'loading') {
@@ -257,7 +261,7 @@ function createMainWindow() {
     y: bounds.y,
     minWidth: 800,
     minHeight: 560,
-    title: "NewsNow 桌面版",
+    title: APP_FULL_NAME + " 桌面版",
     backgroundColor: "#0f0f0f",
     autoHideMenuBar: false,
     webPreferences: {
@@ -331,7 +335,7 @@ function createTray() {
   }
 
   tray = new Tray(icon)
-  tray.setToolTip("NewsNow 桌面版")
+  tray.setToolTip(APP_FULL_NAME + " 桌面版")
 
   // 托盘右键菜单
   const contextMenu = Menu.buildFromTemplate([
@@ -622,14 +626,14 @@ function buildMenu() {
   const viewerActive = viewer.active
   const template = [
     {
-      label: "NewsNow",
+      label: APP_NAME,
       submenu: [
-        { label: "关于 NewsNow 桌面版", click: () => {
+        { label: "关于 " + APP_FULL_NAME + " 桌面版", click: () => {
           dialog.showMessageBox(mainWindow, {
             type: "info",
             title: "关于",
-            message: "NewsNow 桌面版 v" + VERSION,
-            detail: "基于 github.com/newsnext/newsnow 改造\n· 选择订阅源\n· 定期/按需刷新\n· 内置阅读器查看新闻\n· 关闭按钮最小化到通知栏\n\nv2.0：主进程直抓架构（无子进程、无原生模块）\n\n由 TeleAgent 打包",
+            message: APP_FULL_NAME + " 桌面版 v" + VERSION,
+            detail: APP_NAME + " (NewsNow Desktop) — 跨平台新闻聚合阅读器\n\n基于 " + ORIGINAL_PROJECT + " 改造\n· 选择订阅源\n· 定期/按需刷新\n· 内置阅读器查看新闻\n· 关闭按钮最小化到通知栏\n\nv2.0：主进程直抓架构（无子进程、无原生模块）\n\n项目主页：" + PROJECT_HOME + "\n由 TeleAgent 打包",
             buttons: ["确定"],
           })
         }},
@@ -679,7 +683,8 @@ function buildMenu() {
     {
       label: "帮助",
       submenu: [
-        { label: "NewsNow 项目主页", click: () => shell.openExternal("https://github.com/newsnext/newsnow") },
+        { label: APP_NAME + " 项目主页", click: () => shell.openExternal(PROJECT_HOME) },
+        { label: "致敬原项目 NewsNow", click: () => shell.openExternal(ORIGINAL_PROJECT) },
       ],
     },
   ]
@@ -697,7 +702,7 @@ app.whenReady().then(async () => {
     initDesktopStorage()
     registerAppProtocol()
     await loadDataLayer()
-    console.log("NewsNow 桌面版 v" + VERSION + " 就绪（直抓模式，无子进程）")
+    console.log(APP_FULL_NAME + " 桌面版 v" + VERSION + " 就绪（直抓模式，无子进程）")
   } catch (e) {
     dialog.showErrorBox("启动失败", String(e && e.message || e))
     app.quit()
