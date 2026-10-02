@@ -105,7 +105,9 @@ async function loadDataLayer() {
   if (!fs.existsSync(path.join(WEB_DIR, "index.html"))) {
     throw new Error("未找到前端资源: " + WEB_DIR + "\n请运行 build.sh 构建或从 Release 下载预构建包。")
   }
-  dataLayer = await import(DATA_LAYER)
+  // Windows 上 ESM import() 要求 file:// URL，不能直接用 C:\ 路径
+  const { pathToFileURL } = require("node:url")
+  dataLayer = await import(pathToFileURL(DATA_LAYER).href)
   console.log("数据层加载完成，源数量:", Object.keys(dataLayer.sources).length)
 }
 
