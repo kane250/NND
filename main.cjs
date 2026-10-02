@@ -1,6 +1,6 @@
 "use strict"
 
-const { app, BrowserWindow, WebContentsView, Menu, ipcMain, shell, dialog, protocol } = require("electron")
+const { app, BrowserWindow, WebContentsView, Menu, ipcMain, shell, dialog, protocol, Tray, nativeImage } = require("electron")
 const path = require("node:path")
 const fs = require("node:fs")
 
@@ -30,6 +30,8 @@ let dataLayer = null
 let mainWindow = null
 let settingsWindow = null
 let refreshTimer = null
+let tray = null
+let isQuiting = false
 
 const viewer = {
   toolbar: null,
@@ -291,7 +293,14 @@ function createMainWindow() {
     layoutViewer()
   })
   mainWindow.on("move", () => saveBounds())
-  mainWindow.on("close", () => saveBounds())
+  // 拦截关闭按钮：最小化到托盘而非退出（除非用户从菜单/托盘选择退出）
+  mainWindow.on("close", (e) => {
+    saveBounds()
+    if (!isQuiting) {
+      e.preventDefault()
+      mainWindow.hide()
+    }
+  })
 }
 
 function saveBounds() {
@@ -300,6 +309,66 @@ function saveBounds() {
     config.windowBounds = mainWindow.getBounds()
     saveConfig()
   } catch (_) {}
+}
+
+// ---------- 系统托盘 ----------
+function createTray() {
+  // 用 web/ 里的 pwa 图标作为托盘图标（缩放到 22x22 适配托盘）
+  let icon
+  const iconPath = path.join(WEB_DIR, "pwa-192x192.png")
+  try {
+    icon = nativeImage.createFromPath(iconPath)
+    if (icon.isEmpty()) icon = nativeImage.createEmpty()
+    else icon = icon.resize({ width: 22, height: 22 })
+  } catch (_) {
+    icon = nativeImage.createEmpty()
+  }
+
+  tray = new Tray(icon)
+  tray.setToolTip("NewsNow 桌面版")
+
+  // 托盘右键菜单
+  const contextMenu = Menu.buildFromTemplate([
+    { label: "显示主窗口", click: () => showMainWindow() },
+    { label: "刷新全部", click: refreshAll },
+    { type: "separator" },
+    { label: "设置…", click: openSettings },
+    { type: "separator" },
+    { label: "退出", click: () => quitApp() },
+  ])
+  tray.setContextMenu(contextMenu)
+
+  // 单击托盘图标：切换窗口显示/隐藏
+  tray.on("click", () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      if (mainWindow.isVisible() && mainWindow.isFocused()) {
+        mainWindow.hide()
+      } else {
+        showMainWindow()
+      }
+    }
+  })
+}
+
+function showMainWindow() {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    createMainWindow()
+    updateMenu()
+  } else if (mainWindow.isVisible()) {
+    // 已可见时聚焦
+    mainWindow.focus()
+  } else {
+    // 隐藏状态：显示并聚焦
+    if (mainWindow.isMinimized()) mainWindow.restore()
+    mainWindow.show()
+    mainWindow.focus()
+  }
+}
+
+function quitApp() {
+  isQuiting = true
+  if (tray) { tray.destroy(); tray = null }
+  app.quit()
 }
 
 // ---------- 刷新全部 ----------
@@ -554,14 +623,14 @@ function buildMenu() {
             type: "info",
             title: "关于",
             message: "NewsNow 桌面版 v" + VERSION,
-            detail: "基于 github.com/newsnext/newsnow 改造\n· 选择订阅源\n· 定期/按需刷新\n· 内置阅读器查看新闻\n\nv2.0：主进程直抓架构（无子进程、无原生模块）\n\n由 TeleAgent 打包",
+            detail: "基于 github.com/newsnext/newsnow 改造\n· 选择订阅源\n· 定期/按需刷新\n· 内置阅读器查看新闻\n· 关闭按钮最小化到通知栏\n\nv2.0：主进程直抓架构（无子进程、无原生模块）\n\n由 TeleAgent 打包",
             buttons: ["确定"],
           })
         }},
         { type: "separator" },
         { label: "设置…", accelerator: "CmdOrCtrl+Comma", click: openSettings },
         { type: "separator" },
-        { label: "退出", accelerator: "CmdOrCtrl+Q", role: "quit" },
+        { label: "退出", accelerator: "CmdOrCtrl+Q", click: quitApp },
       ],
     },
     {
@@ -629,14 +698,22 @@ app.whenReady().then(async () => {
     return
   }
   createMainWindow()
+  createTray()
   updateMenu()
   setupRefreshTimer()
 })
 
 app.on("window-all-closed", () => {
-  app.quit()
+  // 不退出应用：窗口关闭时驻留托盘（macOS 行为一致）
+  // 仅在用户明确选择退出（isQuiting=true）时才真正退出
+  if (process.platform !== "darwin" && isQuiting) {
+    app.quit()
+  }
+  // 非 darwin 且非退出时：什么都不做，应用驻留托盘
+  // mainWindow 可能已被 destroy（如 window.close()），下次从托盘恢复时重建
 })
 
 app.on("activate", () => {
-  if (BrowserWindow.getAllWindows().length === 0) createMainWindow()
+  // 从托盘恢复或 dock 点击：重新显示/创建窗口
+  showMainWindow()
 })
