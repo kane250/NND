@@ -8,60 +8,138 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     background: #1a1a1e; color: #e6e6e6;
-    font: 14px/1.5 -apple-system, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
-    padding: 22px 22px 18px;
+    font: 14px/1.6 -apple-system, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+    padding: 24px 24px 20px;
     user-select: none;
   }
-  h1 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
-  .row { margin-bottom: 18px; }
-  .row > label { display: block; font-weight: 500; margin-bottom: 8px; opacity: .9; }
-  .desc { font-size: 12px; opacity: .6; margin-top: 4px; }
-  .opt { display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; }
-  .opt input { cursor: pointer; accent-color: #6c8cff; }
-  .radios { display: flex; flex-wrap: wrap; gap: 10px; }
-  .radios label { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border: 1px solid #3a3a40; border-radius: 8px; cursor: pointer; }
-  .radios label:has(input:checked) { border-color: #6c8cff; background: #23233c; }
-  .radios input { accent-color: #6c8cff; }
-  .toggle { position: relative; width: 42px; height: 24px; }
-  .toggle input { opacity: 0; width: 0; height: 0; }
-  .slider { position: absolute; inset: 0; background: #3a3a40; border-radius: 24px; transition: .2s; }
-  .slider::before { content: ""; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .2s; }
+  h1 {
+    font-size: 17px; font-weight: 600; margin-bottom: 20px;
+    padding-bottom: 12px; border-bottom: 1px solid #2e2e34;
+  }
+
+  /* —— 设置项卡片 —— */
+  .setting-item {
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    background: #222228;
+    border: 1px solid #2e2e34;
+    border-radius: 10px;
+    transition: border-color .15s;
+  }
+  .setting-item:hover { border-color: #3a3a44; }
+
+  /* —— 开关行（文字 + toggle 左右分离） —— */
+  .toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+  }
+  .toggle-label { flex: 1; min-width: 0; }
+  .toggle-label .name { font-weight: 500; font-size: 14px; }
+  .toggle-label .desc { font-size: 12px; opacity: .55; margin-top: 2px; }
+
+  /* —— Toggle 开关 —— */
+  .toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .slider {
+    position: absolute; inset: 0;
+    background: #3a3a40; border-radius: 24px;
+    transition: background .2s;
+    cursor: pointer;
+  }
+  .slider::before {
+    content: ""; position: absolute;
+    width: 18px; height: 18px; left: 3px; top: 3px;
+    background: #fff; border-radius: 50%;
+    transition: transform .2s;
+  }
   .toggle input:checked + .slider { background: #6c8cff; }
-  .toggle input:checked + .slider::before { transform: translateX(18px); }
-  .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
-  button { padding: 8px 18px; border-radius: 8px; border: 1px solid #3a3a40; background: #26262c; color: #e6e6e6; cursor: pointer; font-size: 14px; }
-  button.primary { background: #6c8cff; border-color: #6c8cff; color: #12121a; font-weight: 600; }
-  button:hover { filter: brightness(1.1); }
+  .toggle input:checked + .slider::before { transform: translateX(20px); }
+  .toggle input:focus-visible + .slider { outline: 2px solid #6c8cff80; outline-offset: 2px; }
+
+  /* —— 单选组（刷新间隔） —— */
+  .radio-group {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;
+  }
+  .radio-group label {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px;
+    border: 1px solid #3a3a40; border-radius: 8px;
+    cursor: pointer; font-size: 13px;
+    transition: all .15s;
+    background: #1e1e24;
+  }
+  .radio-group label:hover { border-color: #4a4a54; background: #26262e; }
+  .radio-group label:has(input:checked) {
+    border-color: #6c8cff; background: #23233c; color: #fff;
+  }
+  .radio-group input { accent-color: #6c8cff; display: none; }
+  .radio-group label:has(input:checked)::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: #6c8cff; display: inline-block;
+  }
+
+  /* —— 按钮 —— */
+  .actions {
+    display: flex; justify-content: flex-end; gap: 10px;
+    margin-top: 20px; padding-top: 16px;
+    border-top: 1px solid #2e2e34;
+  }
+  button {
+    padding: 9px 22px; border-radius: 8px;
+    border: 1px solid #3a3a40; background: #26262c;
+    color: #e6e6e6; cursor: pointer; font-size: 14px;
+    transition: all .15s;
+  }
+  button:hover { background: #32323a; border-color: #4a4a54; }
+  button:active { background: #2c2c34; }
+  button.primary {
+    background: #6c8cff; border-color: #6c8cff;
+    color: #12121a; font-weight: 600;
+  }
+  button.primary:hover { background: #7d99ff; }
 </style>
 </head>
 <body>
   <h1>设置</h1>
 
-  <div class="row">
-    <label class="opt">
-      <span class="toggle"><input type="checkbox" id="autoRefresh"><span class="slider"></span></span>
-      自动刷新
-    </label>
-    <div class="desc">开启后按设定间隔自动刷新所有已加载的新闻源。</div>
-  </div>
-
-  <div class="row">
-    <label>刷新间隔</label>
-    <div class="radios" id="intervals">
-      <label><input type="radio" name="interval" value="5"> 5 分钟</label>
-      <label><input type="radio" name="interval" value="10"> 10 分钟</label>
-      <label><input type="radio" name="interval" value="15"> 15 分钟</label>
-      <label><input type="radio" name="interval" value="30"> 30 分钟</label>
-      <label><input type="radio" name="interval" value="60"> 60 分钟</label>
+  <div class="setting-item">
+    <div class="toggle-row">
+      <div class="toggle-label">
+        <div class="name">自动刷新</div>
+        <div class="desc">按设定间隔自动刷新所有已加载的新闻源</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="autoRefresh">
+        <span class="slider"></span>
+      </label>
     </div>
   </div>
 
-  <div class="row">
-    <label class="opt">
-      <span class="toggle"><input type="checkbox" id="viewerInApp"><span class="slider"></span></span>
-      内置阅读器查看
-    </label>
-    <div class="desc">点击新闻在程序内部阅读器打开；关闭则用系统浏览器打开。</div>
+  <div class="setting-item">
+    <div class="toggle-label">
+      <div class="name">刷新间隔</div>
+      <div class="desc">自动刷新的时间间隔</div>
+    </div>
+    <div class="radio-group" id="intervals">
+      <label><input type="radio" name="interval" value="5">5 分钟</label>
+      <label><input type="radio" name="interval" value="10">10 分钟</label>
+      <label><input type="radio" name="interval" value="15">15 分钟</label>
+      <label><input type="radio" name="interval" value="30">30 分钟</label>
+      <label><input type="radio" name="interval" value="60">60 分钟</label>
+    </div>
+  </div>
+
+  <div class="setting-item">
+    <div class="toggle-row">
+      <div class="toggle-label">
+        <div class="name">内置阅读器</div>
+        <div class="desc">点击新闻在程序内部阅读器打开；关闭则用系统浏览器打开</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="viewerInApp">
+        <span class="slider"></span>
+      </label>
+    </div>
   </div>
 
   <div class="actions">

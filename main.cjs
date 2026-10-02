@@ -487,8 +487,103 @@ function openViewer(url) {
       }
     }
 
-    // 注入禁止媒体自动播放的 CSS+JS（每次页面加载后执行）
-    const NO_AUToplay_CSS = `video{--muted:1}video,audio{autoplay:0!important;-webkit-autoplay:0!important}video[autoplay],audio[autoplay]{display:none!important}`
+    // 注入禁止媒体自动播放 + 广告拦截 CSS+JS（每次页面加载后执行）
+    const AD_BLOCK_CSS = `
+/* —— 禁止媒体自动播放 —— */
+video{--muted:1}video,audio{autoplay:0!important;-webkit-autoplay:0!important}video[autoplay],audio[autoplay]{display:none!important}
+
+/* —— EasyList 精简规则：通用广告/推广/弹窗元素隐藏 —— */
+
+/* 通用广告选择器（ID/class 含 ad/banner/sponsor/promo/popup/overlay） */
+[id^="ad-"],[id^="ad_"],[id^="ads-"],[id^="ads_"],[id*="-ad-"],[id*="_ad_"],[id$="-ad"],[id$="_ad"],
+[id^="banner-ad"],[id^="google-ad"],[id^="div-gpt-ad"],[id^="google_ads_"],
+[class*="ad-banner"],[class*="ad-container"],[class*="ad-wrapper"],[class*="ad-slot"],
+[class*="advertisement"],[class*="ad-300"],[class*="ad-728"],[class*="ad-160"],
+[class*="google-ad"],[class*="adsbygoogle"],[class*="ad-placement"],
+[id^="popunder"],[id^="popup-ad"],[class*="popup-ad"],[class*="pop-up-ad"],
+[class*="sponsor-ad"],[id*="sponsor-ad"],[class*="promo-ad"],[class*="promotion-ad"],
+{display:none!important}
+
+/* 通用广告容器 */
+div[class*="ad_banner"],div[class*="adBox"],div[class*="ad-area"],div[class*="ad-zone"],
+div[class*="ad-zone"],div[class*="adbox"],div[id*="adbox"],
+div[class*="ggad"],div[id*="ggad"],
+{display:none!important}
+
+/* 弹窗/浮层广告 */
+[class*="modal-ad"],[class*="overlay-ad"],[class*="float-ad"],[class*="fixed-ad"],
+[class*="sticky-ad"],[class*="bottom-ad"],[class*="top-ad"],[class*="side-ad"],
+[class*="full-screen-ad"],[class*="interstitial-ad"],
+{display:none!important}
+
+/* 「推广」「赞助」「广告」文字标记的容器 */
+div[class*="推广"],div[class*="赞助"],div[class*="广告"],
+span[class*="推广"],span[class*="赞助"],span[class*="广告"],
+{display:none!important}
+
+/* 通用——新闻网站常见广告位 */
+[class*="ad_content"],[class*="ad_top"],[class*="ad_bottom"],[class*="ad_left"],[class*="ad_right"],
+[class*="top-banner"],[class*="bottom-banner"],[class*="header-banner"],[class*="footer-banner"],
+[class*="sidebar-ad"],[class*="content-ad"],[class*="article-ad"],[class*="in-article-ad"],
+[class*="recommend-ad"],[class*="related-ad"],[class*="comment-ad"],
+{display:none!important}
+
+/* iframe 广告（非主内容） */
+iframe[src*="doubleclick.net"],iframe[src*="googlesyndication"],iframe[src*="googleads"],
+iframe[src*="adserver"],iframe[src*="adsystem"],iframe[src*="/ad/"],iframe[src*="/ads/"],
+iframe[src*="ad_delivery"],iframe[src*="adify"],
+{display:none!important}
+
+/* —— 国内新闻网站特定规则 —— */
+
+/* 36氪 */
+[class*="ad-recommend"],[class*="ad-modal"],.article-bottom-ad,
+/* 澎湃新闻 */
+.thepaper-ad,.ad-down,[class*="adSidebar"],
+/* 知乎 */
+.PublicOpinion AdWrap,.ContentItemAdWrap,[class*="ad-banner"],.PcWordAdWrap,
+/* 百度热搜/百家号 */
+#cms-article-related-ad,[class*="ad-wrap"],.integral-text-ad,
+/* 腾讯新闻 */
+.ad-banner,[class*="qqad"],[id*="qqad"],
+/* 微博 */
+.WB_ad,[class*="WB_ad"],[class*="wbad"],
+/* IT之家 */
+#ad_post,[class*="ad-post"],.ad-content,
+/* 虎嗅 */
+[class*="ad-article"],[class*="ad-bottom"],
+/* 少数派 */
+[class*="sponsor"],[class*="ad-card"],
+/* 哔哩哔哩 */
+.bilibili-ad,[class*="bilibili-ad"],#bilibili-ad,
+/* 抖音 */
+.ad-container,[class*="ad-feed"],
+{display:none!important}
+
+/* —— 通用「阅读优化」—— */
+
+/* 移除「下载 App」浮层/横幅（常见于移动端适配的新闻站） */
+[class*="download-app"],[class*="download-bar"],[class*="app-download"],
+[class*="open-app"],[class*="openApp"],[class*="app-promo"],
+[id*="open-app"],[id*="downloadApp"],
+{display:none!important}
+
+/* 移除「关注/订阅」弹窗 */
+[class*="follow-prompt"],[class*="subscribe-prompt"],[class*="login-prompt"],
+[class*="register-modal"],[class*="signup-modal"],
+{display:none!important}
+
+/* 移除返回顶部浮动按钮中的广告 */
+[class*="back-top-ad"],[class*="float-ad"],
+{display:none!important}
+
+/* —— 微调阅读体验 —— */
+
+/* 禁用 fixed/sticky 定位的干扰元素（保留阅读器工具栏自身） */
+body > [style*="position:fixed"][style*="z-index"]:not(header):not(nav),
+body > [style*="position: fixed"][style*="z-index"]:not(header):not(nav),
+{display:none!important}
+`
     const NO_AUToplay_JS = `(function(){
       // 移除所有 autoplay 属性
       document.querySelectorAll('video[autoplay],audio[autoplay]').forEach(function(m){ m.removeAttribute('autoplay'); m.pause(); });
@@ -534,9 +629,9 @@ function openViewer(url) {
     viewer.content.webContents.on("dom-ready", () => {
       if (!viewer.content) return
       try {
-        viewer.content.webContents.insertCSS(NO_AUToplay_CSS)
+        viewer.content.webContents.insertCSS(AD_BLOCK_CSS)
         viewer.content.webContents.executeJavaScript(NO_AUToplay_JS, true)
-        console.log("[viewer] 禁止自动播放脚本已注入")
+        console.log("[viewer] 广告拦截 + 禁止自动播放脚本已注入")
       } catch (e) { console.warn("[viewer] 注入失败:", e) }
     })
     viewer.content.webContents.setWindowOpenHandler(({ url: u }) => {
