@@ -34,6 +34,9 @@ rm -rf "$DIR/web"
 mkdir -p "$DIR/web"
 cp -r "$TMPDIR/newsnow/dist/output/public/." "$DIR/web/"
 
+echo "→ 应用前端源配置补丁（注入新源/清理废弃源/生成入口）..."
+node "$DIR/scripts/patch-web-sources.mjs" || echo "[警告] 前端补丁执行失败，请检查"
+
 echo "→ 构建数据层 data-layer.mjs ..."
 cd "$DIR"
 if [ -d "mobile/node_modules" ] || npm --prefix mobile install &>/dev/null; then

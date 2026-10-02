@@ -234,7 +234,12 @@ function registerAppProtocol() {
 
       return new Response(data, {
         status: 200,
-        headers: { "Content-Type": MIME[ext] || "application/octet-stream" },
+        headers: {
+          "Content-Type": MIME[ext] || "application/octet-stream",
+          // 禁用缓存：前端资源可能被本地补丁修改，Chromium 启发式缓存会返回旧版导致 UI 不更新
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          "Pragma": "no-cache",
+        },
       })
     } catch (e) {
       return new Response("Internal Error", { status: 500 })
@@ -262,7 +267,8 @@ function createMainWindow() {
     },
   })
 
-  mainWindow.loadURL("app://local/index.html")
+  // 使用独立入口 index-v2.html（引用重命名后的 bundle），完全规避 Chromium 对 index.html 的启发式缓存
+  mainWindow.loadURL("app://local/index-v2.html?v=" + BUILD_DATE.replace(/[^0-9]/g, ""))
 
   // 键盘快捷键在主进程拦截：避免 Ctrl+R 触发浏览器默认整页刷新（丢滚动位置）
   mainWindow.webContents.on("before-input-event", (e, input) => {
