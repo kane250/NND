@@ -13,6 +13,7 @@ const SETTINGS_HTML = path.join(APP_DIR, "settings.html")
 const SETTINGS_PRELOAD = path.join(APP_DIR, "settings-preload.cjs")
 
 const VERSION = "2.0.0"
+const BUILD_DATE = "2026-10-02"
 
 const DEFAULT_CONFIG = {
   autoRefresh: true,
@@ -186,8 +187,49 @@ function registerAppProtocol() {
       filePath = path.join(WEB_DIR, "index.html")
     }
     try {
-      const data = fs.readFileSync(filePath)
+      let data = fs.readFileSync(filePath)
       const ext = path.extname(filePath).toLowerCase()
+
+      // 对 index.html 注入版本+编译日期显示脚本
+      if (rel === "index.html" || filePath === path.join(WEB_DIR, "index.html")) {
+        const html = data.toString("utf8")
+        const injectScript = `
+<script>
+(function(){
+  var VERSION="${VERSION}";
+  var BUILD_DATE="${BUILD_DATE}";
+  window.__BUILD_INFO__ = { version: VERSION, buildDate: BUILD_DATE };
+  function injectBadge() {
+    var header = document.querySelector('header') || document.querySelector('[class*="justify-self-end"]');
+    if (!header) { setTimeout(injectBadge, 200); return; }
+    // 找到右上角的 flex 容器（含 GoTop/Refresh/Github/Menu）
+    var right = header.querySelector('.justify-self-end');
+    if (!right) { setTimeout(injectBadge, 200); return; }
+    if (document.getElementById('build-badge')) return;
+    var badge = document.createElement('span');
+    badge.id = 'build-badge';
+    badge.style.cssText = 'font-size:11px;opacity:.5;font-family:ui-monospace,monospace;padding:0 6px;white-space:nowrap;cursor:default;user-select:none;';
+    badge.textContent = 'v' + VERSION + ' · ' + BUILD_DATE;
+    badge.title = 'NewsNow Desktop v' + VERSION + ' (构建于 ' + BUILD_DATE + ')';
+    right.insertBefore(badge, right.firstChild);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(injectBadge, 500); });
+  } else {
+    setTimeout(injectBadge, 500);
+  }
+  // 持续重试（前端 React 异步渲染）
+  var retries = 0;
+  var timer = setInterval(function(){
+    if (document.getElementById('build-badge') || retries++ > 30) { clearInterval(timer); return; }
+    injectBadge();
+  }, 1000);
+})();
+</script>`
+        const injected = html.replace("</body>", injectScript + "\n</body>")
+        data = Buffer.from(injected, "utf8")
+      }
+
       return new Response(data, {
         status: 200,
         headers: { "Content-Type": MIME[ext] || "application/octet-stream" },
@@ -310,6 +352,7 @@ function openViewer(url) {
         sandbox: true,
         nodeIntegration: false,
         partition: "persist:viewer",
+        autoplayPolicy: "document-user-activation-required",
       },
     })
     mainWindow.contentView.addChildView(viewer.toolbar)
@@ -348,20 +391,59 @@ function openViewer(url) {
         viewer.toolbar.webContents.send("viewer:url", u || "")
       }
     }
-    const sendNavState = () => {
-      if (!viewer.content) return
-      const wc = viewer.content.webContents
-      try {
-        const canBack = wc.navigationHistory.canGoBack()
-        const canForward = wc.navigationHistory.canGoForward()
-        if (viewer.toolbar && !viewer.toolbar.webContents.isDestroyed()) {
-          viewer.toolbar.webContents.send("viewer:nav-state", { canBack, canForward })
+
+    // 注入禁止媒体自动播放的 CSS+JS（每次页面加载后执行）
+    const NO_AUToplay_CSS = `video{--muted:1}video,audio{autoplay:0!important;-webkit-autoplay:0!important}video[autoplay],audio[autoplay]{display:none!important}`
+    const NO_AUToplay_JS = `(function(){
+      // 移除所有 autoplay 属性
+      document.querySelectorAll('video[autoplay],audio[autoplay]').forEach(function(m){ m.removeAttribute('autoplay'); m.pause(); });
+      // 拦截后续动态插入的自动播放元素
+      if (window.__nnNoAutoplayObs) return;
+      window.__nnNoAutoplayObs = new MutationObserver(function(muts){
+        muts.forEach(function(m){
+          m.addedNodes.forEach(function(n){
+            if (n.nodeType!==1) return;
+            if (n.tagName==='VIDEO'||n.tagName==='AUDIO'){ n.removeAttribute('autoplay'); try{n.pause()}catch(e){} }
+            n.querySelectorAll&&n.querySelectorAll('video[autoplay],audio[autoplay]').forEach(function(el){ el.removeAttribute('autoplay'); try{el.pause()}catch(e){} });
+          });
+        });
+      });
+      window.__nnNoAutoplayObs.observe(document.documentElement||document.body||document, {childList:true,subtree:true});
+      // 拦截 play() 调用（静默阻止自动播放，用户手动点击播放仍可生效）
+      if (!window.__nnPlayPatched) {
+        window.__nnPlayPatched = true;
+        var proto = window.HTMLMediaElement && window.HTMLMediaElement.prototype;
+        if (proto && proto.play) {
+          var origPlay = proto.play;
+          proto.play = function(){
+            // 仅阻止「非用户手势触发」的自动播放
+            if (!window.__nnAllowPlay) {
+              try { this.pause(); } catch(e){}
+              return Promise.reject(new DOMException('autoplay blocked','NotAllowedError'));
+            }
+            return origPlay.apply(this, arguments);
+          };
         }
-      } catch (_) {}
-    }
+      }
+      // 标记允许播放（用户点击播放控件时设置）
+      document.addEventListener('pointerdown', function(){ window.__nnAllowPlay = true; }, {passive:true, capture:true});
+      document.addEventListener('keydown', function(){ window.__nnAllowPlay = true; }, {passive:true, capture:true});
+    })();`
+
     viewer.content.webContents.on("did-navigate", (_e, u) => { sendUrl(u) })
     viewer.content.webContents.on("did-navigate-in-page", (_e, u, isMain) => { if (isMain) sendUrl(u) })
-    viewer.content.webContents.on("did-finish-load", () => { sendUrl(viewer.content.webContents.getURL()) })
+    viewer.content.webContents.on("did-finish-load", () => {
+      sendUrl(viewer.content.webContents.getURL())
+    })
+    // dom-ready: 尽早注入禁止自动播放（在页面脚本执行前）
+    viewer.content.webContents.on("dom-ready", () => {
+      if (!viewer.content) return
+      try {
+        viewer.content.webContents.insertCSS(NO_AUToplay_CSS)
+        viewer.content.webContents.executeJavaScript(NO_AUToplay_JS, true)
+        console.log("[viewer] 禁止自动播放脚本已注入")
+      } catch (e) { console.warn("[viewer] 注入失败:", e) }
+    })
     viewer.content.webContents.setWindowOpenHandler(({ url: u }) => {
       if (u) viewer.content.webContents.loadURL(u)
       return { action: "deny" }
@@ -369,6 +451,7 @@ function openViewer(url) {
 
     viewer.toolbar.webContents.loadFile(VIEWER_HTML)
   }
+
   viewer.active = true
   viewer.content.webContents.loadURL(url)
   layoutViewer()
@@ -380,8 +463,18 @@ function closeViewer() {
   viewer.active = false
   layoutViewer()
   updateMenu()
-  // 停止阅读内容加载以释放资源
+  // 主动暂停所有媒体播放，再停止加载释放资源
   if (viewer.content) {
+    try {
+      viewer.content.webContents.executeJavaScript(
+        `(function(){
+          document.querySelectorAll('video,audio').forEach(function(m){
+            try { m.pause(); m.currentTime = 0; } catch(e){}
+          });
+        })()`,
+        true
+      )
+    } catch (_) {}
     try { viewer.content.webContents.stop() } catch (_) {}
   }
 }
