@@ -12,7 +12,7 @@ const VIEWER_PRELOAD = path.join(APP_DIR, "viewer-preload.cjs")
 const SETTINGS_HTML = path.join(APP_DIR, "settings.html")
 const SETTINGS_PRELOAD = path.join(APP_DIR, "settings-preload.cjs")
 
-const VERSION = "2.0.0"
+const VERSION = "2.0.1"
 const BUILD_DATE = "2026-10-02"
 const APP_NAME = "NND"
 const APP_FULL_NAME = "NewsNow Desktop"
