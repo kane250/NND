@@ -28,7 +28,7 @@ jobs:
       - name: Rename tar.gz
         run: |
           cd release-build
-          mv newsnow-desktop-*.tar.gz NewsNow-${{ github.event.inputs.version || github.ref_name }}-linux-x64.tar.gz || true
+          mv newsnow-desktop-*.tar.gz NND-${{ github.event.inputs.version || github.ref_name }}-linux-x64.tar.gz || true
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -48,7 +48,7 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Build Windows packages
-        run: npx electron-builder --win portable nsis
+        run: npx electron-builder --win nsis
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload artifacts
