@@ -23934,7 +23934,6 @@ var init_getters = __esm({
       thepaper: thepaper_default,
       sputniknewscn: sputniknewscn_default,
       cankaoxiaoxi: cankaoxiaoxi_default,
-      // pcbeta,  // 已删除（反爬）
       cls: cls_default,
       xueqiu: xueqiu_default,
       gelonghui: gelonghui_default,
@@ -23942,7 +23941,6 @@ var init_getters = __esm({
       solidot: solidot_default,
       hackernews: hackernews_default,
       producthunt: producthunt_default,
-      // github,  // 已删除（504）
       bilibili: bilibili_default,
       kuaishou: kuaishou_default,
       kaopu: kaopu_default,
@@ -23957,7 +23955,6 @@ var init_getters = __esm({
       steam: steam_default,
       tencent: tencent_default,
       freebuf: freebuf_default,
-      // qqvideo,  // 已删除（空数据）
       iqiyi: iqiyi_default,
       linuxdo: linuxdo_default,
       ghxi: ghxi_default,

@@ -24,8 +24,6 @@ import ithome from "./sources/ithome"
 import thepaper from "./sources/thepaper"
 import sputniknewscn from "./sources/sputniknewscn"
 import cankaoxiaoxi from "./sources/cankaoxiaoxi"
-import pcbeta from "./sources/pcbeta"
-// pcbeta 已禁用（反爬）
 import cls from "./sources/cls"
 import xueqiu from "./sources/xueqiu"
 import gelonghui from "./sources/gelonghui"
@@ -33,8 +31,6 @@ import fastbull from "./sources/fastbull"
 import solidot from "./sources/solidot"
 import hackernews from "./sources/hackernews"
 import producthunt from "./sources/producthunt"
-import github from "./sources/github"
-// github 已禁用（504）
 import bilibili from "./sources/bilibili"
 import kuaishou from "./sources/kuaishou"
 import kaopu from "./sources/kaopu"
@@ -49,8 +45,6 @@ import douban from "./sources/douban"
 import steam from "./sources/steam"
 import tencent from "./sources/tencent"
 import freebuf from "./sources/freebuf"
-import qqvideo from "./sources/qqvideo"
-// qqvideo 已禁用（空数据）
 import iqiyi from "./sources/iqiyi"
 import linuxdo from "./sources/linuxdo"
 import ghxi from "./sources/ghxi"
@@ -88,7 +82,6 @@ const sourceModules: Record<string, SourceGetter | Record<string, SourceGetter>>
   thepaper,
   sputniknewscn,
   cankaoxiaoxi,
-  // pcbeta,  // 已删除（反爬）
   cls,
   xueqiu,
   gelonghui,
@@ -96,7 +89,6 @@ const sourceModules: Record<string, SourceGetter | Record<string, SourceGetter>>
   solidot,
   hackernews,
   producthunt,
-  // github,  // 已删除（504）
   bilibili,
   kuaishou,
   kaopu,
@@ -111,7 +103,6 @@ const sourceModules: Record<string, SourceGetter | Record<string, SourceGetter>>
   steam,
   tencent,
   freebuf,
-  // qqvideo,  // 已删除（空数据）
   iqiyi,
   linuxdo,
   ghxi,

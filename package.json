@@ -56,12 +56,6 @@
         "nsis"
       ]
     },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "shortcutName": "NewsNow"
-    },
     "appImage": {
       "artifactName": "NewsNow-${version}-${arch}.AppImage"
     },
