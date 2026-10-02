@@ -217,25 +217,6 @@
     "color": "red",
     "interval": 1800000
   },
-  "pcbeta": {
-    "redirect": "pcbeta-windows11",
-    "name": "远景论坛",
-    "type": "realtime",
-    "column": "tech",
-    "home": "https://bbs.pcbeta.com",
-    "color": "blue",
-    "interval": 300000,
-    "title": "Win11"
-  },
-  "pcbeta-windows11": {
-    "name": "远景论坛",
-    "type": "realtime",
-    "column": "tech",
-    "home": "https://bbs.pcbeta.com",
-    "color": "blue",
-    "interval": 300000,
-    "title": "Win11"
-  },
   "cls": {
     "redirect": "cls-telegraph",
     "name": "财联社",
@@ -349,25 +330,6 @@
     "home": "https://www.producthunt.com/",
     "color": "red",
     "interval": 600000
-  },
-  "github": {
-    "redirect": "github-trending-today",
-    "name": "Github",
-    "type": "hottest",
-    "column": "tech",
-    "home": "https://github.com/",
-    "color": "gray",
-    "interval": 600000,
-    "title": "Today"
-  },
-  "github-trending-today": {
-    "name": "Github",
-    "type": "hottest",
-    "column": "tech",
-    "home": "https://github.com/",
-    "color": "gray",
-    "interval": 600000,
-    "title": "Today"
   },
   "bilibili": {
     "redirect": "bilibili-hot-search",
@@ -546,25 +508,6 @@
     "color": "green",
     "interval": 600000
   },
-  "qqvideo": {
-    "redirect": "qqvideo-tv-hotsearch",
-    "name": "腾讯视频",
-    "type": "hottest",
-    "column": "china",
-    "home": "https://v.qq.com/channel/tv",
-    "color": "blue",
-    "interval": 1800000,
-    "title": "热搜榜"
-  },
-  "qqvideo-tv-hotsearch": {
-    "name": "腾讯视频",
-    "type": "hottest",
-    "column": "china",
-    "home": "https://v.qq.com/channel/tv",
-    "color": "blue",
-    "interval": 1800000,
-    "title": "热搜榜"
-  },
   "iqiyi": {
     "redirect": "iqiyi-hot-ranklist",
     "name": "爱奇艺",
@@ -583,5 +526,90 @@
     "color": "green",
     "interval": 1800000,
     "title": "热播榜"
+  },
+  "huxiu": {
+    "name": "虎嗅",
+    "type": "realtime",
+    "column": "tech",
+    "color": "orange",
+    "interval": 600000,
+    "home": "https://www.huxiu.com"
+  },
+  "caixin": {
+    "name": "财新网",
+    "type": "realtime",
+    "column": "finance",
+    "color": "blue",
+    "interval": 600000,
+    "home": "https://www.caixin.com"
+  },
+  "cctv": {
+    "name": "央视新闻",
+    "type": "realtime",
+    "column": "china",
+    "color": "red",
+    "interval": 600000,
+    "home": "https://news.cctv.com"
+  },
+  "cnbeta": {
+    "name": "cnBeta",
+    "type": "realtime",
+    "column": "tech",
+    "color": "slate",
+    "interval": 600000,
+    "home": "https://www.cnbeta.com"
+  },
+  "sspai-matrix": {
+    "name": "少数派",
+    "title": "Matrix",
+    "type": "realtime",
+    "column": "tech",
+    "color": "red",
+    "interval": 600000,
+    "home": "https://sspai.com"
+  },
+  "people": {
+    "name": "人民网",
+    "title": "观点",
+    "type": "realtime",
+    "column": "china",
+    "color": "red",
+    "interval": 600000,
+    "home": "http://www.people.com.cn"
+  },
+  "36kr-hot": {
+    "name": "36氪",
+    "title": "热榜",
+    "type": "hottest",
+    "column": "tech",
+    "color": "blue",
+    "interval": 600000,
+    "home": "https://36kr.com"
+  },
+  "rfi": {
+    "name": "法广",
+    "title": "中文",
+    "type": "realtime",
+    "column": "world",
+    "color": "blue",
+    "interval": 600000,
+    "home": "https://www.rfi.fr/cn"
+  },
+  "nyt": {
+    "name": "纽约时报",
+    "title": "中文",
+    "type": "realtime",
+    "column": "world",
+    "color": "slate",
+    "interval": 600000,
+    "home": "https://cn.nytimes.com"
+  },
+  "ft": {
+    "name": "FT中文网",
+    "type": "realtime",
+    "column": "finance",
+    "color": "salmon",
+    "interval": 600000,
+    "home": "https://www.ftchinese.com"
   }
 }
