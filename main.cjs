@@ -261,7 +261,7 @@ function createMainWindow() {
     y: bounds.y,
     minWidth: 800,
     minHeight: 560,
-    title: APP_FULL_NAME + " 桌面版",
+    title: APP_NAME,
     backgroundColor: "#0f0f0f",
     autoHideMenuBar: false,
     webPreferences: {
@@ -335,7 +335,7 @@ function createTray() {
   }
 
   tray = new Tray(icon)
-  tray.setToolTip(APP_FULL_NAME + " 桌面版")
+  tray.setToolTip(APP_NAME + " — NewsNow Desktop")
 
   // 托盘右键菜单
   const contextMenu = Menu.buildFromTemplate([
@@ -644,11 +644,11 @@ function buildMenu() {
     {
       label: APP_NAME,
       submenu: [
-        { label: "关于 " + APP_FULL_NAME + " 桌面版", click: () => {
+        { label: "关于 " + APP_NAME, click: () => {
           dialog.showMessageBox(mainWindow, {
             type: "info",
             title: "关于",
-            message: APP_FULL_NAME + " 桌面版 v" + VERSION,
+            message: APP_NAME + " (NewsNow Desktop) v" + VERSION,
             detail: APP_NAME + " (NewsNow Desktop) — 跨平台新闻聚合阅读器\n\n基于 " + ORIGINAL_PROJECT + " 改造\n· 选择订阅源\n· 定期/按需刷新\n· 内置阅读器查看新闻\n· 关闭按钮最小化到通知栏\n\nv2.0：主进程直抓架构（无子进程、无原生模块）\n\n项目主页：" + PROJECT_HOME + "\n由 TeleAgent 打包",
             buttons: ["确定"],
           })
@@ -718,7 +718,7 @@ app.whenReady().then(async () => {
     initDesktopStorage()
     registerAppProtocol()
     await loadDataLayer()
-    console.log(APP_FULL_NAME + " 桌面版 v" + VERSION + " 就绪（直抓模式，无子进程）")
+    console.log(APP_NAME + " v" + VERSION + " 就绪（直抓模式，无子进程）")
   } catch (e) {
     dialog.showErrorBox("启动失败", String(e && e.message || e))
     app.quit()

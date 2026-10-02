@@ -1,11 +1,11 @@
 [Desktop Entry]
 Type=Application
-Name=NewsNow 桌面版
+Name=NND
 GenericName=NewsNow Desktop
-Comment=选择订阅、定期/按需刷新、内置阅读器查看新闻
+Comment=NND — 跨平台新闻聚合阅读器（选择订阅、定期/按需刷新、内置阅读器）
 Exec=/home/kene/.local/share/TeleAgent/TeleAgent的工作空间/NewsNow-Desktop/start.sh
-Icon=newspaper
+Icon=/home/kene/.local/share/TeleAgent/TeleAgent的工作空间/NewsNow-Desktop/build-icon.png
 Terminal=false
 Categories=Network;News;
-StartupWMClass=NewsNow 桌面版
-Keywords=news;新闻;订阅;聚合;
+StartupWMClass=NND
+Keywords=NND;news;新闻;订阅;聚合;
