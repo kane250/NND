@@ -28,7 +28,7 @@ jobs:
       - name: Rename tar.gz
         run: |
           cd release-build
-          mv newsnow-desktop-*.tar.gz NND-${{ github.event.inputs.version || github.ref_name }}-linux-x64.tar.gz || true
+          mv nnd-*.tar.gz NND-${{ github.event.inputs.version || github.ref_name }}-linux-x64.tar.gz || true
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:

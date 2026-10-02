@@ -20,7 +20,7 @@ TeleAgent Vibe Coding 发布
 
 ### Windows
 
-从 [Releases](https://github.com/kane250/newsnow-desktop/releases/latest) 下载 `NND-x.x.x-win-x64-setup.exe`，双击安装即可。安装包会创建桌面快捷方式和开始菜单快捷方式（名称均为 NND）。
+从 [Releases](https://github.com/kane250/NND/releases/latest) 下载 `NND-x.x.x-win-x64-setup.exe`，双击安装即可。安装包会创建桌面快捷方式和开始菜单快捷方式（名称均为 NND）。
 
 ### Linux
 
@@ -37,8 +37,8 @@ TeleAgent Vibe Coding 发布
 ### 从源码运行
 
 ```bash
-git clone https://github.com/kane250/newsnow-desktop.git
-cd newsnow-desktop
+git clone https://github.com/kane250/NND.git
+cd NND
 npm install                # 安装 Electron
 ./start.sh                # Linux/macOS   |   start.bat   # Windows
 ```

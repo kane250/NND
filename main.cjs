@@ -16,7 +16,7 @@ const VERSION = "2.0.1"
 const BUILD_DATE = "2026-10-02"
 const APP_NAME = "NND"
 const APP_FULL_NAME = "NewsNow Desktop"
-const PROJECT_HOME = "https://github.com/kane250/newsnow-desktop"
+const PROJECT_HOME = "https://github.com/kane250/NND"
 const ORIGINAL_PROJECT = "https://github.com/newsnext/newsnow"
 
 const DEFAULT_CONFIG = {

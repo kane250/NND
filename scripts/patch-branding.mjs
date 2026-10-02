@@ -46,11 +46,11 @@ replace(
   "作者 ourongxing → TeleAgent (kane250)",
 )
 
-// 3. 项目主页 URL：ourongxing/newsnow → kane250/newsnow-desktop
+// 3. 项目主页 URL：ourongxing/newsnow → kane250/NND
 replace(
   'hk="https://github.com/ourongxing/newsnow"',
-  'hk="https://github.com/kane250/newsnow-desktop"',
-  "项目主页 URL → kane250/newsnow-desktop",
+  'hk="https://github.com/kane250/NND"',
+  "项目主页 URL → kane250/NND",
 )
 
 // 4. 左上角 logo：News + Now → NND
@@ -63,15 +63,15 @@ replace(
 // 5. Star badge 链接
 replace(
   'href:"https://github.com/ourongxing/newsnow",children:D.jsx("img",{alt:"GitHub stars badge",src:"https://img.shields.io/github/stars/ourongxing/newsnow?logo=github&style=flat&labelColor=%235e3c40&color=%23614447"})',
-  'href:"https://github.com/kane250/newsnow-desktop",children:D.jsx("img",{alt:"GitHub stars badge",src:"https://img.shields.io/github/stars/kane250/newsnow-desktop?logo=github&style=flat&labelColor=%235e3c40&color=%23614447"})',
-  "Star badge 链接 → kane250/newsnow-desktop",
+  'href:"https://github.com/kane250/NND",children:D.jsx("img",{alt:"GitHub stars badge",src:"https://img.shields.io/github/stars/kane250/NND?logo=github&style=flat&labelColor=%235e3c40&color=%23614447"})',
+  "Star badge 链接 → kane250/NND",
 )
 
 // 6. Fork badge 链接
 replace(
   'href:"https://github.com/ourongxing/newsnow/fork",children:D.jsx("img",{alt:"GitHub forks badge",src:"https://img.shields.io/github/forks/ourongxing/newsnow?logo=github&style=flat&labelColor=%235e3c40&color=%23614447"})',
-  'href:"https://github.com/kane250/newsnow-desktop/fork",children:D.jsx("img",{alt:"GitHub forks badge",src:"https://img.shields.io/github/forks/kane250/newsnow-desktop?logo=github&style=flat&labelColor=%235e3c40&color=%23614447"})',
-  "Fork badge 链接 → kane250/newsnow-desktop",
+  'href:"https://github.com/kane250/NND/fork",children:D.jsx("img",{alt:"GitHub forks badge",src:"https://img.shields.io/github/forks/kane250/NND?logo=github&style=flat&labelColor=%235e3c40&color=%23614447"})',
+  "Fork badge 链接 → kane250/NND",
 )
 
 // 7. 版权信息 + 致敬原项目
