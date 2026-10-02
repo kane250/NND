@@ -81,6 +81,13 @@ replace(
   "版权信息 → NND © 2026 By TeleAgent + 致敬原项目",
 )
 
+// 8. 页面标题前缀：NewsNow | → NND |
+replace(
+  'x2(`NewsNow | ${Wv[t].name}`)',
+  'x2(`NND | ${Wv[t].name}`)',
+  "页面标题前缀 NewsNow → NND",
+)
+
 if (changes > 0) {
   writeFileSync(bundlePath, code)
   console.log(`✓ 品牌定制完成: ${changes} 处修改, ${basename(bundlePath)}（${(code.length / 1024).toFixed(0)}KB）`)

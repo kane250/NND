@@ -343,6 +343,22 @@ function createTray() {
     { label: "刷新全部", click: refreshAll },
     { type: "separator" },
     { label: "设置…", click: openSettings },
+    { label: "关于…", click: () => {
+      dialog.showMessageBox(mainWindow, {
+        type: "info",
+        title: "关于",
+        message: APP_NAME + " (NewsNow Desktop) v" + VERSION,
+        detail: APP_NAME + " — 跨平台新闻聚合阅读器\n\n" +
+          "版权所有 © 2026 TeleAgent\n" +
+          "项目主页：" + PROJECT_HOME + "\n\n" +
+          "基于原项目 NewsNow 改造\n" +
+          "原项目地址：" + ORIGINAL_PROJECT + "\n" +
+          "原作者：ourongxing\n\n" +
+          "v2.0：主进程直抓架构（无子进程、无原生模块）\n" +
+          "由 TeleAgent 打包",
+        buttons: ["确定"],
+      })
+    }},
     { type: "separator" },
     { label: "退出", click: () => quitApp() },
   ])
