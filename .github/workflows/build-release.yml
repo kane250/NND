@@ -12,29 +12,23 @@ on:
         default: "2.0.0"
 
 jobs:
-  # ─────────────────── Linux ───────────────────
   build-linux:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-
       - name: Install dependencies
         run: npm install
-
       - name: Build Linux packages
         run: npx electron-builder --linux AppImage tar.gz deb
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Rename tar.gz
         run: |
           cd release-build
           mv newsnow-desktop-*.tar.gz NewsNow-${{ github.event.inputs.version || github.ref_name }}-linux-x64.tar.gz || true
-
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -44,24 +38,19 @@ jobs:
             release-build/*.tar.gz
             release-build/*.deb
 
-  # ─────────────────── Windows ───────────────────
   build-windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-
       - name: Install dependencies
         run: npm install
-
       - name: Build Windows packages
         run: npx electron-builder --win portable nsis
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -69,7 +58,6 @@ jobs:
           path: |
             release-build/*.exe
 
-  # ─────────────────── Android ───────────────────
   build-android:
     runs-on: ubuntu-22.04
     defaults:
@@ -77,51 +65,39 @@ jobs:
         working-directory: mobile
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-
       - name: Install dependencies
         run: npm install
-
       - name: Build web assets
         run: node build-web.mjs
-
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: |
-            platforms;android-36
-            build-tools;36.0.0
-
+      - name: Accept Android SDK licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" "build-tools;36.0.0" || true
       - name: Sync Capacitor
         run: npx cap sync android
-
       - name: Build APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
-
       - name: Copy APK
         run: |
           mkdir -p release
           cp android/app/build/outputs/apk/debug/app-debug.apk "release/NewsNow-${{ github.event.inputs.version || github.ref_name }}-android-debug.apk"
-
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: android-build
           path: mobile/release/*.apk
 
-  # ─────────────────── iOS ───────────────────
   build-ios:
     runs-on: macos-14
     defaults:
@@ -129,47 +105,32 @@ jobs:
         working-directory: mobile
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-
       - name: Install dependencies
         run: npm install
-
       - name: Build web assets
         run: node build-web.mjs
-
       - name: Sync Capacitor
         run: npx cap sync ios
-
       - name: Build iOS app (no signing)
-        run: |
-          npx cap build ios --no-sign
-        continue-on-error: true
-
-      - name: Build iOS app (xcodebuild fallback)
-        if: failure()
         run: |
           cd ios/App
           xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -sdk iphoneos CODE_SIGNING_ALLOWED=NO -derivedDataPath build || \
           xcodebuild -workspace App.xcworkspace -scheme App -configuration Debug -sdk iphonesimulator CODE_SIGNING_ALLOWED=NO -derivedDataPath build
         continue-on-error: true
-
-      - name: Find build output
+      - name: Find and package build output
         id: find-output
         run: |
           APP_DIR=$(find ios/App/build -name "App.app" -type d 2>/dev/null | head -1)
           echo "app_dir=$APP_DIR" >> $GITHUB_OUTPUT
           if [ -n "$APP_DIR" ]; then
-            mkdir -p release
             mkdir -p release/Payload
             cp -r "$APP_DIR" release/Payload/
             cd release && zip -r "NewsNow-${{ github.event.inputs.version || github.ref_name }}-ios-unsigned.ipa" Payload
-            echo "ipa created"
           fi
         continue-on-error: true
-
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         if: steps.find-output.outputs.app_dir != ''
@@ -177,7 +138,6 @@ jobs:
           name: ios-build
           path: mobile/release/*.ipa
 
-  # ─────────────────── Release ───────────────────
   release:
     needs: [build-linux, build-windows, build-android, build-ios]
     runs-on: ubuntu-22.04
@@ -186,15 +146,10 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
-
-      - name: List artifacts
-        run: find artifacts -type f -exec ls -la {} \;
-
       - name: Create or Update Release
         uses: softprops/action-gh-release@v2
         with:
