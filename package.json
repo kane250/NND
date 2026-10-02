@@ -7,6 +7,69 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "dist:linux": "electron-builder --linux AppImage tar.gz",
+    "dist:win": "electron-builder --win portable nsis",
+    "dist": "electron-builder -mlw"
+  },
+  "devDependencies": {
+    "electron": "^44.5.1",
+    "electron-builder": "^26.15.3"
+  },
+  "allowScripts": {
+    "electron@44.5.1": true
+  },
+  "build": {
+    "appId": "com.kane.newsnow",
+    "productName": "NewsNow",
+    "copyright": "MIT",
+    "directories": {
+      "output": "release-build"
+    },
+    "files": [
+      "main.cjs",
+      "data-layer.mjs",
+      "viewer.html",
+      "viewer-preload.cjs",
+      "settings.html",
+      "settings-preload.cjs",
+      "package.json",
+      "web/**/*"
+    ],
+    "linux": {
+      "icon": "build-icon.png",
+      "target": [
+        "AppImage",
+        "tar.gz"
+      ],
+      "category": "Network",
+      "description": "NewsNow 跨平台新闻聚合阅读器"
+    },
+    "win": {
+      "icon": "build-icon.png",
+      "target": [
+        "portable",
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "NewsNow"
+    },
+    "appImage": {
+      "artifactName": "NewsNow-${version}-${arch}.AppImage"
+    },
+    "portable": {
+      "artifactName": "NewsNow-${version}-win-${arch}.portable.exe"
+    },
+    "nsis": {
+      "artifactName": "NewsNow-${version}-win-${arch}-setup.exe",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "NewsNow"
+    }
   }
 }

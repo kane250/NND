@@ -22,3 +22,6 @@ mobile/android/.gradle/
 mobile/android/build/
 mobile/ios/App/App/public/
 mobile/release/*.apk
+release-build/
+build-icon.png
+node_modules/
