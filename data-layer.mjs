@@ -255,25 +255,6 @@ var init_sources_data = __esm({
         color: "red",
         interval: 18e5
       },
-      pcbeta: {
-        redirect: "pcbeta-windows11",
-        name: "\u8FDC\u666F\u8BBA\u575B",
-        type: "realtime",
-        column: "tech",
-        home: "https://bbs.pcbeta.com",
-        color: "blue",
-        interval: 3e5,
-        title: "Win11"
-      },
-      "pcbeta-windows11": {
-        name: "\u8FDC\u666F\u8BBA\u575B",
-        type: "realtime",
-        column: "tech",
-        home: "https://bbs.pcbeta.com",
-        color: "blue",
-        interval: 3e5,
-        title: "Win11"
-      },
       cls: {
         redirect: "cls-telegraph",
         name: "\u8D22\u8054\u793E",
@@ -387,25 +368,6 @@ var init_sources_data = __esm({
         home: "https://www.producthunt.com/",
         color: "red",
         interval: 6e5
-      },
-      github: {
-        redirect: "github-trending-today",
-        name: "Github",
-        type: "hottest",
-        column: "tech",
-        home: "https://github.com/",
-        color: "gray",
-        interval: 6e5,
-        title: "Today"
-      },
-      "github-trending-today": {
-        name: "Github",
-        type: "hottest",
-        column: "tech",
-        home: "https://github.com/",
-        color: "gray",
-        interval: 6e5,
-        title: "Today"
       },
       bilibili: {
         redirect: "bilibili-hot-search",
@@ -584,25 +546,6 @@ var init_sources_data = __esm({
         color: "green",
         interval: 6e5
       },
-      qqvideo: {
-        redirect: "qqvideo-tv-hotsearch",
-        name: "\u817E\u8BAF\u89C6\u9891",
-        type: "hottest",
-        column: "china",
-        home: "https://v.qq.com/channel/tv",
-        color: "blue",
-        interval: 18e5,
-        title: "\u70ED\u641C\u699C"
-      },
-      "qqvideo-tv-hotsearch": {
-        name: "\u817E\u8BAF\u89C6\u9891",
-        type: "hottest",
-        column: "china",
-        home: "https://v.qq.com/channel/tv",
-        color: "blue",
-        interval: 18e5,
-        title: "\u70ED\u641C\u699C"
-      },
       iqiyi: {
         redirect: "iqiyi-hot-ranklist",
         name: "\u7231\u5947\u827A",
@@ -621,6 +564,91 @@ var init_sources_data = __esm({
         color: "green",
         interval: 18e5,
         title: "\u70ED\u64AD\u699C"
+      },
+      huxiu: {
+        name: "\u864E\u55C5",
+        type: "realtime",
+        column: "tech",
+        color: "orange",
+        interval: 6e5,
+        home: "https://www.huxiu.com"
+      },
+      caixin: {
+        name: "\u8D22\u65B0\u7F51",
+        type: "realtime",
+        column: "finance",
+        color: "blue",
+        interval: 6e5,
+        home: "https://www.caixin.com"
+      },
+      cctv: {
+        name: "\u592E\u89C6\u65B0\u95FB",
+        type: "realtime",
+        column: "china",
+        color: "red",
+        interval: 6e5,
+        home: "https://news.cctv.com"
+      },
+      cnbeta: {
+        name: "cnBeta",
+        type: "realtime",
+        column: "tech",
+        color: "slate",
+        interval: 6e5,
+        home: "https://www.cnbeta.com"
+      },
+      "sspai-matrix": {
+        name: "\u5C11\u6570\u6D3E",
+        title: "Matrix",
+        type: "realtime",
+        column: "tech",
+        color: "red",
+        interval: 6e5,
+        home: "https://sspai.com"
+      },
+      people: {
+        name: "\u4EBA\u6C11\u7F51",
+        title: "\u89C2\u70B9",
+        type: "realtime",
+        column: "china",
+        color: "red",
+        interval: 6e5,
+        home: "http://www.people.com.cn"
+      },
+      "36kr-hot": {
+        name: "36\u6C2A",
+        title: "\u70ED\u699C",
+        type: "hottest",
+        column: "tech",
+        color: "blue",
+        interval: 6e5,
+        home: "https://36kr.com"
+      },
+      rfi: {
+        name: "\u6CD5\u5E7F",
+        title: "\u4E2D\u6587",
+        type: "realtime",
+        column: "world",
+        color: "blue",
+        interval: 6e5,
+        home: "https://www.rfi.fr/cn"
+      },
+      nyt: {
+        name: "\u7EBD\u7EA6\u65F6\u62A5",
+        title: "\u4E2D\u6587",
+        type: "realtime",
+        column: "world",
+        color: "slate",
+        interval: 6e5,
+        home: "https://cn.nytimes.com"
+      },
+      ft: {
+        name: "FT\u4E2D\u6587\u7F51",
+        type: "realtime",
+        column: "finance",
+        color: "salmon",
+        interval: 6e5,
+        home: "https://www.ftchinese.com"
       }
     };
   }
@@ -5823,6 +5851,24 @@ function defineRSSSource(url, option) {
       url: item.link,
       id: item.link,
       pubDate: !option?.hiddenDate ? item.created : void 0
+    }));
+  };
+}
+function defineRSSHubSource(route, RSSHubOptions, sourceOption) {
+  return async () => {
+    const RSSHubBase = "https://rsshub.rssforever.com";
+    const url = new URL(route, RSSHubBase);
+    url.searchParams.set("format", "json");
+    const opts = { sorted: true, ...RSSHubOptions };
+    Object.entries(opts).forEach(([key, value]) => {
+      url.searchParams.set(key, String(value));
+    });
+    const data2 = await myFetch(url.toString());
+    return (data2.items || []).map((item) => ({
+      title: item.title,
+      url: item.url,
+      id: item.id ?? item.url,
+      pubDate: !sourceOption?.hiddenDate ? item.date_published : void 0
     }));
   };
 }
@@ -22452,8 +22498,8 @@ var init_kr = __esm({
     init_define();
     init_date();
     quick = defineSource(async () => {
-      const baseURL3 = "https://www.36kr.com";
-      const url = `${baseURL3}/newsflashes`;
+      const baseURL2 = "https://www.36kr.com";
+      const url = `${baseURL2}/newsflashes`;
       const response = await myFetch(url);
       const $2 = load(response);
       const news3 = [];
@@ -22466,7 +22512,7 @@ var init_kr = __esm({
         const relativeDate = $el.find(".time").text();
         if (url2 && title && relativeDate) {
           news3.push({
-            url: `${baseURL3}${url2}`,
+            url: `${baseURL2}${url2}`,
             title,
             id: url2,
             extra: {
@@ -22478,9 +22524,9 @@ var init_kr = __esm({
       return news3;
     });
     renqi = defineSource(async () => {
-      const baseURL3 = "https://36kr.com";
+      const baseURL2 = "https://36kr.com";
       const formatted = (0, import_dayjs2.default)().format("YYYY-MM-DD");
-      const url = `${baseURL3}/hot-list/renqi/${formatted}/1`;
+      const url = `${baseURL2}/hot-list/renqi/${formatted}/1`;
       const response = await myFetch(url, {
         headers: {
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
@@ -22501,7 +22547,7 @@ var init_kr = __esm({
         const hot5 = $el.find(".kr-flow-bar-hot span").text().trim();
         if (href && title) {
           articles.push({
-            url: href.startsWith("http") ? href : `${baseURL3}${href}`,
+            url: href.startsWith("http") ? href : `${baseURL2}${href}`,
             title,
             id: href.slice(3),
             // 简化处理
@@ -22766,51 +22812,6 @@ var init_cankaoxiaoxi = __esm({
   }
 });
 
-// mobile/src/sources/pcbeta.ts
-function parseRSS(xmlText) {
-  const xml2 = new XMLParser({
-    attributeNamePrefix: "",
-    textNodeName: "#text",
-    ignoreAttributes: false
-  });
-  const result = xml2.parse(xmlText);
-  const items = result?.rss?.channel?.item;
-  const list = Array.isArray(items) ? items : items ? [items] : [];
-  return list.map((item) => ({
-    id: item.link,
-    title: item.title,
-    url: item.link,
-    pubDate: item.pubDate,
-    extra: {
-      hover: item.description
-    }
-  })).filter((item) => item.id && item.title);
-}
-function pcbeta(fid) {
-  return defineSource(async () => {
-    const text3 = await myFetch(
-      `${baseURL}/forum.php?mod=rss&fid=${fid}&auth=0`,
-      { responseType: "text" }
-    );
-    const news3 = parseRSS(text3);
-    if (!news3.length) throw new Error("Cannot fetch rss data (\u53EF\u80FD\u88AB\u53CD\u722C\u62E6\u622A)");
-    return news3;
-  });
-}
-var baseURL, pcbeta_default;
-var init_pcbeta = __esm({
-  "mobile/src/sources/pcbeta.ts"() {
-    init_fetch();
-    init_define();
-    init_fxp();
-    baseURL = "https://bbs.pcbeta.com";
-    pcbeta_default = defineSource({
-      "pcbeta-windows11": pcbeta(563),
-      "pcbeta-windows": pcbeta(521)
-    });
-  }
-});
-
 // mobile/src/sources/cls.ts
 async function myCrypto(s, algorithm) {
   const data2 = new TextEncoder().encode(s);
@@ -22934,7 +22935,7 @@ var init_gelonghui = __esm({
     init_define();
     init_date();
     gelonghui_default = defineSource(async () => {
-      const baseURL3 = "https://www.gelonghui.com";
+      const baseURL2 = "https://www.gelonghui.com";
       const html3 = await myFetch("https://www.gelonghui.com/news/");
       const $2 = load(html3);
       const $main = $2(".article-content");
@@ -22947,7 +22948,7 @@ var init_gelonghui = __esm({
         const relatieveTime = $2(el).find(".time > span:nth-child(3)").text();
         if (url && title && relatieveTime) {
           news3.push({
-            url: baseURL3 + url,
+            url: baseURL2 + url,
             title,
             id: url,
             extra: {
@@ -22970,8 +22971,8 @@ var init_fastbull = __esm({
     init_fetch();
     init_define();
     express = defineSource(async () => {
-      const baseURL3 = "https://www.fastbull.com";
-      const html3 = await myFetch(`${baseURL3}/cn/express-news`);
+      const baseURL2 = "https://www.fastbull.com";
+      const html3 = await myFetch(`${baseURL2}/cn/express-news`);
       const $2 = load(html3);
       const $main = $2(".content-list.news-list");
       const news3 = [];
@@ -22985,7 +22986,7 @@ var init_fastbull = __esm({
         if (url && title && date) {
           const pathname = url.startsWith("/") ? url : `/cn/fastshort/${url}`;
           news3.push({
-            url: baseURL3 + pathname,
+            url: baseURL2 + pathname,
             title: title.length < 4 ? titleText : title,
             id: url,
             pubDate: Number(date)
@@ -22995,8 +22996,8 @@ var init_fastbull = __esm({
       return news3.sort((a, b) => Number(b.pubDate) - Number(a.pubDate));
     });
     news2 = defineSource(async () => {
-      const baseURL3 = "https://www.fastbull.com";
-      const html3 = await myFetch(`${baseURL3}/cn/news`);
+      const baseURL2 = "https://www.fastbull.com";
+      const html3 = await myFetch(`${baseURL2}/cn/news`);
       const $2 = load(html3);
       const $main = $2(".trending_type");
       const news3 = [];
@@ -23007,7 +23008,7 @@ var init_fastbull = __esm({
         const date = a.find("[data-date]").attr("data-date");
         if (url && title && date) {
           news3.push({
-            url: url.startsWith("http") ? url : baseURL3 + url,
+            url: url.startsWith("http") ? url : baseURL2 + url,
             title,
             id: url,
             pubDate: Number(date)
@@ -23037,7 +23038,7 @@ var init_solidot = __esm({
 
 // mobile/src/sources/hackernews.ts
 async function fetchDirect() {
-  const html3 = await myFetch(baseURL2);
+  const html3 = await myFetch(baseURL);
   const $2 = load(html3);
   const $main = $2(".athing");
   const news3 = [];
@@ -23046,7 +23047,7 @@ async function fetchDirect() {
     const title = a.text();
     const id = $2(el).attr("id");
     const score = $2(`#score_${id}`).text();
-    const url = `${baseURL2}/item?id=${id}`;
+    const url = `${baseURL}/item?id=${id}`;
     if (url && id && title) {
       news3.push({
         url,
@@ -23079,14 +23080,14 @@ async function fetchViaRSS() {
     };
   }).filter((item) => item.id && item.title && item.url);
 }
-var baseURL2, hackernews_default;
+var baseURL, hackernews_default;
 var init_hackernews = __esm({
   "mobile/src/sources/hackernews.ts"() {
     init_browser();
     init_fetch();
     init_define();
     init_rss();
-    baseURL2 = "https://news.ycombinator.com";
+    baseURL = "https://news.ycombinator.com";
     hackernews_default = defineSource(async () => {
       const news3 = await fetchDirect().catch(() => []);
       if (news3.length) return news3;
@@ -23103,46 +23104,6 @@ var init_producthunt = __esm({
     feed = defineRSSSource("https://www.producthunt.com/feed");
     producthunt_default = defineSource(async () => {
       return feed();
-    });
-  }
-});
-
-// mobile/src/sources/github.ts
-var trending, github_default;
-var init_github = __esm({
-  "mobile/src/sources/github.ts"() {
-    init_browser();
-    init_fetch();
-    init_define();
-    trending = defineSource(async () => {
-      const baseURL3 = "https://github.com";
-      const html3 = await myFetch("https://github.com/trending?spoken_language_code=");
-      const $2 = load(html3);
-      const $main = $2("main .Box div[data-hpc] > article");
-      const news3 = [];
-      $main.each((_, el) => {
-        const a = $2(el).find(">h2 a");
-        const title = a.text().replace(/\n+/g, "").trim();
-        const url = a.attr("href");
-        const star = $2(el).find("[href$=stargazers]").text().replace(/\s+/g, "").trim();
-        const desc = $2(el).find(">p").text().replace(/\n+/g, "").trim();
-        if (url && title) {
-          news3.push({
-            url: `${baseURL3}${url}`,
-            title,
-            id: url,
-            extra: {
-              info: `\u2730 ${star}`,
-              hover: desc
-            }
-          });
-        }
-      });
-      return news3;
-    });
-    github_default = defineSource({
-      "github": trending,
-      "github-trending-today": trending
     });
   }
 });
@@ -23250,8 +23211,8 @@ var init_kaopu = __esm({
     init_define();
     init_date();
     kaopu_default = defineSource(async () => {
-      const baseURL3 = "https://kaopu.news";
-      const html3 = await myFetch(baseURL3, {
+      const baseURL2 = "https://kaopu.news";
+      const html3 = await myFetch(baseURL2, {
         responseType: "text",
         headers: {
           "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
@@ -23277,7 +23238,7 @@ var init_kaopu = __esm({
             hover: description,
             info: source3
           },
-          url: new URL(href, baseURL3).toString()
+          url: new URL(href, baseURL2).toString()
         });
       });
       return news3;
@@ -23485,8 +23446,8 @@ var init_douban = __esm({
     init_fetch();
     init_define();
     douban_default = defineSource(async () => {
-      const baseURL3 = "https://m.douban.com/rexxar/api/v2/subject/recent_hot/movie";
-      const res = await myFetch(baseURL3, {
+      const baseURL2 = "https://m.douban.com/rexxar/api/v2/subject/recent_hot/movie";
+      const res = await myFetch(baseURL2, {
         headers: {
           Referer: "https://movie.douban.com/",
           Accept: "application/json, text/plain, */*"
@@ -23607,89 +23568,6 @@ var init_freebuf = __esm({
       }).filter((item) => item.id && item.title && item.url);
       if (!news3.length) throw new Error("Cannot fetch freebuf feed");
       return news3;
-    });
-  }
-});
-
-// mobile/src/sources/qqvideo.ts
-function getQqVideoUrl(cid) {
-  return `https://v.qq.com/x/cover/${cid}.html`;
-}
-function getTodaySlash() {
-  return (0, import_dayjs3.default)().format("YYYY-MM-DD");
-}
-var import_dayjs3, hotSearch2, qqvideo_default;
-var init_qqvideo = __esm({
-  "mobile/src/sources/qqvideo.ts"() {
-    init_fetch();
-    init_define();
-    import_dayjs3 = __toESM(require_dayjs_min(), 1);
-    hotSearch2 = defineSource(async () => {
-      const url = "https://pbaccess.video.qq.com/trpc.vector_layout.page_view.PageService/getCard?video_appid=3000010&vversion_platform=2";
-      const resp = await myFetch(url, {
-        method: "POST",
-        headers: { Referer: "https://v.qq.com/" },
-        body: {
-          page_params: {
-            rank_channel_id: "100113",
-            rank_name: "HotSearch",
-            rank_page_size: "30",
-            tab_mvl_sub_mod_id: "792ac_19e77Sub_1b2",
-            tab_name: "\u70ED\u641C\u699C",
-            tab_type: "hot_rank",
-            tab_vl_data_src: "f5200deb4596bbf3",
-            page_id: "scms_shake",
-            page_type: "scms_shake",
-            source_key: "",
-            tag_id: "",
-            tag_type: "",
-            new_mark_label_enabled: "1"
-          },
-          page_context: {
-            page_index: "1"
-          },
-          flip_info: {
-            page_strategy_id: "",
-            page_module_id: "792ac_19e77",
-            module_strategy_id: {},
-            sub_module_id: "20251106065177",
-            flip_params: {
-              folding_screen_show_num: "",
-              is_mvl: "1",
-              mvl_strategy_info: '{"default_strategy_id":"06755800b45b49238582a6fa1ad0f5c5","default_version":"3836","hit_page_uuid":"b5080d97dc694a5fb50eb9e7c99326ac","hit_tab_info":null,"gray_status_info":null,"bypass_to_un_exp_id":""}',
-              mvl_sub_mod_id: "20251106065177",
-              pad_post_show_num: "",
-              pad_pro_post_show_num: "",
-              pad_pro_small_hor_pic_display_num: "",
-              pad_small_hor_pic_display_num: "",
-              page_id: "scms_shake",
-              page_num: "0",
-              page_type: "scms_shake",
-              post_show_num: "",
-              shake_size: "",
-              small_hor_pic_display_num: "",
-              source_key: "100113",
-              un_policy_id: "06755800b45b49238582a6fa1ad0f5c5",
-              un_strategy_id: "06755800b45b49238582a6fa1ad0f5c5"
-            },
-            relace_children_key: []
-          }
-        }
-      });
-      return resp?.data?.card?.children_list?.list?.cards?.map((item) => {
-        return {
-          id: item?.id,
-          title: item?.params?.title,
-          url: getQqVideoUrl(item?.id),
-          pubDate: item?.params?.publish_date ?? getTodaySlash(),
-          extra: {
-            hover: item?.params?.sub_title
-          }
-        };
-      });
-    });
-    qqvideo_default = defineSource({
-      "qqvideo-tv-hotsearch": hotSearch2
     });
   }
 });
@@ -23825,8 +23703,8 @@ var init_smzdm = __esm({
     init_fetch();
     init_define();
     smzdm_default = defineSource(async () => {
-      const baseURL3 = "https://post.smzdm.com/hot_1/";
-      const html3 = await myFetch(baseURL3);
+      const baseURL2 = "https://post.smzdm.com/hot_1/";
+      const html3 = await myFetch(baseURL2);
       const $2 = load(html3);
       const $main = $2("#feed-main-list .z-feed-title");
       const news3 = [];
@@ -23842,6 +23720,96 @@ var init_smzdm = __esm({
       });
       return news3;
     });
+  }
+});
+
+// mobile/src/sources/huxiu.ts
+var huxiu_default;
+var init_huxiu = __esm({
+  "mobile/src/sources/huxiu.ts"() {
+    init_define();
+    huxiu_default = defineRSSHubSource("huxiu/article");
+  }
+});
+
+// mobile/src/sources/caixin.ts
+var caixin_default;
+var init_caixin = __esm({
+  "mobile/src/sources/caixin.ts"() {
+    init_define();
+    caixin_default = defineRSSHubSource("caixin/latest");
+  }
+});
+
+// mobile/src/sources/cctv.ts
+var cctv_default;
+var init_cctv = __esm({
+  "mobile/src/sources/cctv.ts"() {
+    init_define();
+    cctv_default = defineRSSHubSource("cctv/news");
+  }
+});
+
+// mobile/src/sources/cnbeta.ts
+var cnbeta_default;
+var init_cnbeta = __esm({
+  "mobile/src/sources/cnbeta.ts"() {
+    init_define();
+    cnbeta_default = defineRSSHubSource("cnbeta");
+  }
+});
+
+// mobile/src/sources/sspai-matrix.ts
+var sspai_matrix_default;
+var init_sspai_matrix = __esm({
+  "mobile/src/sources/sspai-matrix.ts"() {
+    init_define();
+    sspai_matrix_default = defineRSSHubSource("sspai/matrix");
+  }
+});
+
+// mobile/src/sources/people.ts
+var people_default;
+var init_people = __esm({
+  "mobile/src/sources/people.ts"() {
+    init_define();
+    people_default = defineRSSHubSource("people/opinion");
+  }
+});
+
+// mobile/src/sources/36kr-hot.ts
+var kr_hot_default;
+var init_kr_hot = __esm({
+  "mobile/src/sources/36kr-hot.ts"() {
+    init_define();
+    kr_hot_default = defineRSSHubSource("36kr/hot-list");
+  }
+});
+
+// mobile/src/sources/rfi.ts
+var rfi_default;
+var init_rfi = __esm({
+  "mobile/src/sources/rfi.ts"() {
+    init_define();
+    rfi_default = defineRSSSource("https://www.rfi.fr/cn/rss");
+  }
+});
+
+// mobile/src/sources/nyt.ts
+var nyt_default;
+var init_nyt = __esm({
+  "mobile/src/sources/nyt.ts"() {
+    init_define();
+    nyt_default = defineRSSSource("https://cn.nytimes.com/rss/");
+  }
+});
+
+// mobile/src/sources/ft.ts
+var ft_default;
+var init_ft = __esm({
+  "mobile/src/sources/ft.ts"() {
+    init_define();
+    ft_default = defineRSSSource("https://www.ftchinese.com/rss/feed");
   }
 });
 
@@ -23912,7 +23880,6 @@ var init_getters = __esm({
     init_thepaper();
     init_sputniknewscn();
     init_cankaoxiaoxi();
-    init_pcbeta();
     init_cls();
     init_xueqiu();
     init_gelonghui();
@@ -23920,7 +23887,6 @@ var init_getters = __esm({
     init_solidot();
     init_hackernews();
     init_producthunt();
-    init_github();
     init_bilibili();
     init_kuaishou();
     init_kaopu();
@@ -23935,11 +23901,20 @@ var init_getters = __esm({
     init_steam();
     init_tencent();
     init_freebuf();
-    init_qqvideo();
     init_iqiyi();
     init_linuxdo();
     init_ghxi();
     init_smzdm();
+    init_huxiu();
+    init_caixin();
+    init_cctv();
+    init_cnbeta();
+    init_sspai_matrix();
+    init_people();
+    init_kr_hot();
+    init_rfi();
+    init_nyt();
+    init_ft();
     sourceModules = {
       v2ex: v2ex_default,
       zhihu: zhihu_default,
@@ -23959,7 +23934,7 @@ var init_getters = __esm({
       thepaper: thepaper_default,
       sputniknewscn: sputniknewscn_default,
       cankaoxiaoxi: cankaoxiaoxi_default,
-      pcbeta: pcbeta_default,
+      // pcbeta,  // 已删除（反爬）
       cls: cls_default,
       xueqiu: xueqiu_default,
       gelonghui: gelonghui_default,
@@ -23967,7 +23942,7 @@ var init_getters = __esm({
       solidot: solidot_default,
       hackernews: hackernews_default,
       producthunt: producthunt_default,
-      github: github_default,
+      // github,  // 已删除（504）
       bilibili: bilibili_default,
       kuaishou: kuaishou_default,
       kaopu: kaopu_default,
@@ -23982,11 +23957,22 @@ var init_getters = __esm({
       steam: steam_default,
       tencent: tencent_default,
       freebuf: freebuf_default,
-      qqvideo: qqvideo_default,
+      // qqvideo,  // 已删除（空数据）
       iqiyi: iqiyi_default,
       linuxdo: linuxdo_default,
       ghxi: ghxi_default,
-      smzdm: smzdm_default
+      smzdm: smzdm_default,
+      // 新增源
+      huxiu: huxiu_default,
+      caixin: caixin_default,
+      cctv: cctv_default,
+      cnbeta: cnbeta_default,
+      "sspai-matrix": sspai_matrix_default,
+      people: people_default,
+      "36kr-hot": kr_hot_default,
+      rfi: rfi_default,
+      nyt: nyt_default,
+      ft: ft_default
     };
     getters = {};
     for (const [id, mod] of Object.entries(sourceModules)) {
