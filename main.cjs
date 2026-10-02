@@ -12,7 +12,7 @@ const VIEWER_PRELOAD = path.join(APP_DIR, "viewer-preload.cjs")
 const SETTINGS_HTML = path.join(APP_DIR, "settings.html")
 const SETTINGS_PRELOAD = path.join(APP_DIR, "settings-preload.cjs")
 
-const VERSION = "2.0.2"
+const VERSION = "2.0.3"
 const BUILD_DATE = "2026-10-02"
 const APP_NAME = "NND"
 const APP_FULL_NAME = "NewsNow Desktop"
@@ -810,7 +810,17 @@ protocol.registerSchemesAsPrivileged([
   { scheme: "app", privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true, codeCache: true } },
 ])
 
-app.whenReady().then(async () => {
+// 单实例锁：只允许运行一个 NND 实例，第二个实例启动时聚焦已有窗口并退出
+const gotTheLock = app.requestSingleInstanceLock()
+if (!gotTheLock) {
+  app.quit()
+} else {
+  app.on("second-instance", () => {
+    // 用户尝试启动第二个实例：显示已有窗口并聚焦
+    showMainWindow()
+  })
+
+  app.whenReady().then(async () => {
   try {
     initDesktopStorage()
     registerAppProtocol()
@@ -825,7 +835,8 @@ app.whenReady().then(async () => {
   createTray()
   updateMenu()
   setupRefreshTimer()
-})
+  })
+} // end of gotTheLock else block
 
 app.on("window-all-closed", () => {
   // 不退出应用：窗口关闭时驻留托盘（macOS 行为一致）
