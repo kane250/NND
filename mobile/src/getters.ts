@@ -25,6 +25,7 @@ import thepaper from "./sources/thepaper"
 import sputniknewscn from "./sources/sputniknewscn"
 import cankaoxiaoxi from "./sources/cankaoxiaoxi"
 import pcbeta from "./sources/pcbeta"
+// pcbeta 已禁用（反爬）
 import cls from "./sources/cls"
 import xueqiu from "./sources/xueqiu"
 import gelonghui from "./sources/gelonghui"
@@ -33,6 +34,7 @@ import solidot from "./sources/solidot"
 import hackernews from "./sources/hackernews"
 import producthunt from "./sources/producthunt"
 import github from "./sources/github"
+// github 已禁用（504）
 import bilibili from "./sources/bilibili"
 import kuaishou from "./sources/kuaishou"
 import kaopu from "./sources/kaopu"
@@ -48,10 +50,23 @@ import steam from "./sources/steam"
 import tencent from "./sources/tencent"
 import freebuf from "./sources/freebuf"
 import qqvideo from "./sources/qqvideo"
+// qqvideo 已禁用（空数据）
 import iqiyi from "./sources/iqiyi"
 import linuxdo from "./sources/linuxdo"
 import ghxi from "./sources/ghxi"
 import smzdm from "./sources/smzdm"
+
+// 新增源
+import huxiu from "./sources/huxiu"
+import caixin from "./sources/caixin"
+import cctv from "./sources/cctv"
+import cnbeta from "./sources/cnbeta"
+import sspaiMatrix from "./sources/sspai-matrix"
+import people from "./sources/people"
+import _36krHot from "./sources/36kr-hot"
+import rfi from "./sources/rfi"
+import nyt from "./sources/nyt"
+import ft from "./sources/ft"
 
 // 注册表：SourceID -> getter 函数（或多个子源的对象）
 const sourceModules: Record<string, SourceGetter | Record<string, SourceGetter>> = {
@@ -73,7 +88,7 @@ const sourceModules: Record<string, SourceGetter | Record<string, SourceGetter>>
   thepaper,
   sputniknewscn,
   cankaoxiaoxi,
-  pcbeta,
+  // pcbeta,  // 已删除（反爬）
   cls,
   xueqiu,
   gelonghui,
@@ -81,7 +96,7 @@ const sourceModules: Record<string, SourceGetter | Record<string, SourceGetter>>
   solidot,
   hackernews,
   producthunt,
-  github,
+  // github,  // 已删除（504）
   bilibili,
   kuaishou,
   kaopu,
@@ -96,11 +111,22 @@ const sourceModules: Record<string, SourceGetter | Record<string, SourceGetter>>
   steam,
   tencent,
   freebuf,
-  qqvideo,
+  // qqvideo,  // 已删除（空数据）
   iqiyi,
   linuxdo,
   ghxi,
   smzdm,
+  // 新增源
+  huxiu,
+  caixin,
+  cctv,
+  cnbeta,
+  "sspai-matrix": sspaiMatrix,
+  people,
+  "36kr-hot": _36krHot,
+  rfi,
+  nyt,
+  ft,
 }
 
 // 构建 getters 映射表（展开子源）
