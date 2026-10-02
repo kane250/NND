@@ -50,7 +50,7 @@
       "description": "NND — 跨平台新闻聚合阅读器"
     },
     "win": {
-      "icon": "build-icon.png",
+      "icon": "build-icon.ico",
       "target": [
         "nsis"
       ]

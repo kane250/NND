@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Build Linux packages
-        run: npx electron-builder --linux AppImage tar.gz deb
+        run: npx electron-builder --linux AppImage tar.gz deb --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Rename tar.gz
@@ -48,7 +48,7 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Build Windows packages
-        run: npx electron-builder --win nsis
+        run: npx electron-builder --win nsis --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload artifacts
@@ -91,7 +91,7 @@ jobs:
       - name: Copy APK
         run: |
           mkdir -p release
-          cp android/app/build/outputs/apk/debug/app-debug.apk "release/NewsNow-${{ github.event.inputs.version || github.ref_name }}-android-debug.apk"
+          cp android/app/build/outputs/apk/debug/app-debug.apk "release/NND-${{ github.event.inputs.version || github.ref_name }}-android-debug.apk"
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -128,7 +128,7 @@ jobs:
           if [ -n "$APP_DIR" ]; then
             mkdir -p release/Payload
             cp -r "$APP_DIR" release/Payload/
-            cd release && zip -r "NewsNow-${{ github.event.inputs.version || github.ref_name }}-ios-unsigned.ipa" Payload
+            cd release && zip -r "NND-${{ github.event.inputs.version || github.ref_name }}-ios-unsigned.ipa" Payload
           fi
         continue-on-error: true
       - name: Upload artifacts
