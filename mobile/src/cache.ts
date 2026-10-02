@@ -1,5 +1,6 @@
 /**
  * 本地缓存层
+ * - Electron 桌面主进程：用注入的 __DESKTOP_STORAGE__（文件持久化）
  * - Capacitor 原生：用 @capacitor/preferences（原生 SharedPreferences/UserDefaults）
  * - 浏览器：用 localStorage
  * 内存缓存 + 持久化，按源的 interval 控制刷新间隔
@@ -21,6 +22,13 @@ let storageSet: (key: string, value: string) => Promise<void> = async () => {}
 
 // 异步初始化持久化存储
 async function initStorage() {
+  // Electron 桌面主进程：由 main.cjs 注入 globalThis.__DESKTOP_STORAGE__
+  const desktopStorage = (globalThis as any).__DESKTOP_STORAGE__
+  if (desktopStorage) {
+    storageGet = desktopStorage.get
+    storageSet = desktopStorage.set
+    return
+  }
   if (typeof window !== "undefined" && (window as any).capacitor?.isNativePlatform?.()) {
     try {
       const { Preferences } = await import("@capacitor/preferences")

@@ -1,19 +1,18 @@
 "use strict"
 
-const { app, BrowserWindow, WebContentsView, Menu, ipcMain, shell, dialog } = require("electron")
-const { spawn } = require("node:child_process")
+const { app, BrowserWindow, WebContentsView, Menu, ipcMain, shell, dialog, protocol } = require("electron")
 const path = require("node:path")
-const http = require("node:http")
 const fs = require("node:fs")
-const net = require("node:net")
-const crypto = require("node:crypto")
 
 const APP_DIR = __dirname
-const SERVER_ENTRY = path.join(APP_DIR, "app", "server", "index.mjs")
+const DATA_LAYER = path.join(APP_DIR, "data-layer.mjs")
+const WEB_DIR = path.join(APP_DIR, "web")
 const VIEWER_HTML = path.join(APP_DIR, "viewer.html")
 const VIEWER_PRELOAD = path.join(APP_DIR, "viewer-preload.cjs")
 const SETTINGS_HTML = path.join(APP_DIR, "settings.html")
 const SETTINGS_PRELOAD = path.join(APP_DIR, "settings-preload.cjs")
+
+const VERSION = "2.0.0"
 
 const DEFAULT_CONFIG = {
   autoRefresh: true,
@@ -26,8 +25,7 @@ const userDataDir = app.getPath("userData")
 const CONFIG_PATH = path.join(userDataDir, "config.json")
 
 let config = loadConfig()
-let serverProc = null
-let serverPort = null
+let dataLayer = null
 let mainWindow = null
 let settingsWindow = null
 let refreshTimer = null
@@ -61,93 +59,143 @@ function saveConfig() {
   }
 }
 
-// ---------- 服务器 ----------
-function findFreePort() {
-  return new Promise((resolve, reject) => {
-    const srv = net.createServer()
-    srv.unref()
-    srv.on("error", reject)
-    srv.listen(0, "127.0.0.1", () => {
-      const port = srv.address().port
-      srv.close(() => resolve(port))
-    })
-  })
-}
+// ---------- 数据层（主进程直抓，无子进程） ----------
 
-function pollReady(port, timeoutMs = 30000) {
-  const start = Date.now()
-  return new Promise((resolve, reject) => {
-    const attempt = () => {
-      const req = http.get(`http://127.0.0.1:${port}/api/latest`, (res) => {
-        res.resume()
-        if (res.statusCode === 200) return resolve(true)
-        if (Date.now() - start > timeoutMs) return reject(new Error("服务器就绪超时"))
-        setTimeout(attempt, 300)
-      })
-      req.on("error", () => {
-        if (Date.now() - start > timeoutMs) return reject(new Error("服务器就绪超时"))
-        setTimeout(attempt, 300)
-      })
-    }
-    attempt()
-  })
-}
-
-function startServer(port) {
-  return new Promise((resolve, reject) => {
-    if (!fs.existsSync(SERVER_ENTRY)) {
-      return reject(new Error("未找到服务端入口: " + SERVER_ENTRY + "\n请先运行 build.sh 构建 NewsNow，或从 Release 下载预构建包。"))
-    }
-    if (!fs.existsSync(path.join(APP_DIR, "app", "server", "node_modules", "better-sqlite3"))) {
-      return reject(new Error("服务端依赖未安装。\n请先运行 setup.sh (Linux/macOS) 或 setup.bat (Windows) 安装原生依赖。"))
-    }
-    const env = {
-      ...process.env,
-      NODE_ENV: "production",
-      PORT: String(port),
-      HOST: "127.0.0.1",
-      INIT_TABLE: "true",
-      ENABLE_CACHE: "true",
-      JWT_SECRET: crypto.randomBytes(32).toString("hex"),
-    }
-    // 跨平台查找 node：优先 NODE_BIN 环境变量，其次 PATH 上的 node
-    let nodeBin = process.env.NODE_BIN
-    if (!nodeBin) {
-      try { nodeBin = require("node:child_process").execSync(process.platform === "win32" ? "where node" : "which node", { encoding: "utf8" }).trim().split(/\r?\n/)[0] } catch (_) { nodeBin = "node" }
-    }
-    serverProc = spawn(nodeBin, [SERVER_ENTRY], {
-      env,
-      cwd: APP_DIR,
-      stdio: ["ignore", "pipe", "pipe"],
-      // Windows 上需要 shell 处理路径中的空格
-      shell: process.platform === "win32" && (!nodeBin || nodeBin.includes(" ")),
-    })
-    let stdoutBuf = ""
-    serverProc.stdout.on("data", (d) => {
-      stdoutBuf += d.toString()
-      process.stdout.write("[newsnow-server] " + d)
-    })
-    serverProc.stderr.on("data", (d) => process.stderr.write("[newsnow-server] " + d))
-    serverProc.on("exit", (code) => {
-      console.log("NewsNow 服务进程退出，code=" + code)
-      serverProc = null
-    })
-    pollReady(port).then(resolve).catch(reject)
-  })
-}
-
-function stopServer() {
-  if (serverProc) {
-    try {
-      if (process.platform === "win32") {
-        // Windows 上 SIGTERM 不可靠，用 taskkill 强制终止进程树
-        spawn("taskkill", ["/pid", String(serverProc.pid), "/f", "/t"], { stdio: "ignore" })
-      } else {
-        serverProc.kill("SIGTERM")
-      }
-    } catch (_) {}
-    serverProc = null
+// 桌面持久化存储：JSON 文件 + 防抖写入，注入给数据层 cache 模块
+function initDesktopStorage() {
+  const storePath = path.join(userDataDir, "data-cache.json")
+  let store = {}
+  try {
+    if (fs.existsSync(storePath)) store = JSON.parse(fs.readFileSync(storePath, "utf8"))
+  } catch (e) {
+    console.warn("数据缓存读取失败，从空缓存开始:", e)
   }
+  let saveTimer = null
+  const flush = () => {
+    try {
+      fs.mkdirSync(userDataDir, { recursive: true })
+      fs.writeFileSync(storePath, JSON.stringify(store))
+    } catch (e) {
+      console.warn("数据缓存写入失败:", e)
+    }
+  }
+  globalThis.__DESKTOP_STORAGE__ = {
+    get: async (k) => (Object.prototype.hasOwnProperty.call(store, k) ? store[k] : null),
+    set: async (k, v) => {
+      store[k] = v
+      if (saveTimer) clearTimeout(saveTimer)
+      saveTimer = setTimeout(flush, 500)
+    },
+  }
+  // 数据层 fetch 模块靠此标记启用 Node fetch 分支（无 CORS，支持 getSetCookie）
+  globalThis.__ELECTRON_MAIN__ = true
+}
+
+async function loadDataLayer() {
+  if (!fs.existsSync(DATA_LAYER)) {
+    throw new Error("未找到数据层: " + DATA_LAYER + "\n请运行 node scripts/build-data.mjs 构建。")
+  }
+  if (!fs.existsSync(path.join(WEB_DIR, "index.html"))) {
+    throw new Error("未找到前端资源: " + WEB_DIR + "\n请运行 build.sh 构建或从 Release 下载预构建包。")
+  }
+  dataLayer = await import(DATA_LAYER)
+  console.log("数据层加载完成，源数量:", Object.keys(dataLayer.sources).length)
+}
+
+// ---------- app:// 协议（静态资源 + API） ----------
+const MIME = {
+  ".html": "text/html; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
+  ".mjs": "text/javascript; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".ico": "image/x-icon",
+  ".ttf": "font/ttf",
+  ".woff": "font/woff",
+  ".woff2": "font/woff2",
+  ".webmanifest": "application/manifest+json",
+  ".txt": "text/plain; charset=utf-8",
+  ".xml": "application/xml; charset=utf-8",
+}
+
+function jsonResponse(obj, status = 200) {
+  return new Response(JSON.stringify(obj), {
+    status,
+    headers: { "Content-Type": "application/json; charset=utf-8" },
+  })
+}
+
+async function handleApi(pathname, url, request) {
+  // 版本信息（原 /api/latest）
+  if (pathname === "/api/latest") return jsonResponse({ v: VERSION })
+  // 登录禁用（前端 useLogin 靠 enable 字段判断）
+  if (pathname === "/api/enable-login") return jsonResponse({ enable: false })
+  // 多端同步：无登录态，返回空数据（前端有 jwt 才调用）
+  if (pathname === "/api/me/sync") return jsonResponse({ data: { sources: [] }, updatedTime: 0 })
+  // 单源获取
+  if (pathname === "/api/s") {
+    const id = url.searchParams.get("id")
+    const latest = url.searchParams.get("latest")
+    if (!id) return jsonResponse({ status: "error", id: "", updatedTime: Date.now(), items: [] }, 400)
+    try {
+      const res = await dataLayer.getSourceData(id, latest === "1" || latest === "true")
+      return jsonResponse(res)
+    } catch (e) {
+      console.warn(`源 ${id} 获取失败:`, e && e.message)
+      return jsonResponse({ status: "error", id, updatedTime: Date.now(), items: [] }, 500)
+    }
+  }
+  // 批量获取（POST body: {sources: string[]}）
+  if (pathname === "/api/s/entire") {
+    try {
+      let sources = []
+      if (request.uploadData && request.uploadData.length) {
+        const raw = Buffer.from(request.uploadData[0].bytes).toString("utf8")
+        const body = JSON.parse(raw)
+        sources = body.sources || []
+      }
+      const res = await dataLayer.getEntireData(sources)
+      return jsonResponse(res)
+    } catch (e) {
+      console.warn("entire 接口失败:", e && e.message)
+      return jsonResponse([], 500)
+    }
+  }
+  return new Response("Not Found", { status: 404 })
+}
+
+function registerAppProtocol() {
+  protocol.handle("app", async (request) => {
+    const url = new URL(request.url)
+    const pathname = decodeURIComponent(url.pathname)
+
+    // API 分支（standard scheme 的 pathname 带前导 "/"）
+    if (pathname.startsWith("/api/")) {
+      return handleApi(pathname, url, request)
+    }
+
+    // 静态资源（SPA fallback 到 index.html）
+    const rel = pathname === "/" ? "index.html" : pathname.slice(1)
+    let filePath = path.normalize(path.join(WEB_DIR, rel))
+    if (!filePath.startsWith(WEB_DIR)) {
+      filePath = path.join(WEB_DIR, "index.html")
+    }
+    if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+      filePath = path.join(WEB_DIR, "index.html")
+    }
+    try {
+      const data = fs.readFileSync(filePath)
+      const ext = path.extname(filePath).toLowerCase()
+      return new Response(data, {
+        status: 200,
+        headers: { "Content-Type": MIME[ext] || "application/octet-stream" },
+      })
+    } catch (e) {
+      return new Response("Internal Error", { status: 500 })
+    }
+  })
 }
 
 // ---------- 主窗口 ----------
@@ -170,7 +218,7 @@ function createMainWindow() {
     },
   })
 
-  mainWindow.loadURL(`http://127.0.0.1:${serverPort}/`)
+  mainWindow.loadURL("app://local/index.html")
 
   // 键盘快捷键在主进程拦截：避免 Ctrl+R 触发浏览器默认整页刷新（丢滚动位置）
   mainWindow.webContents.on("before-input-event", (e, input) => {
@@ -412,8 +460,8 @@ function buildMenu() {
           dialog.showMessageBox(mainWindow, {
             type: "info",
             title: "关于",
-            message: "NewsNow 桌面版",
-            detail: "基于 github.com/newsnext/newsnow 改造\n· 选择订阅源\n· 定期/按需刷新\n· 内置阅读器查看新闻\n\n由 TeleAgent 打包",
+            message: "NewsNow 桌面版 v" + VERSION,
+            detail: "基于 github.com/newsnext/newsnow 改造\n· 选择订阅源\n· 定期/按需刷新\n· 内置阅读器查看新闻\n\nv2.0：主进程直抓架构（无子进程、无原生模块）\n\n由 TeleAgent 打包",
             buttons: ["确定"],
           })
         }},
@@ -471,12 +519,17 @@ function buildMenu() {
 }
 
 // ---------- 生命周期 ----------
+// 自定义协议需在 app ready 前注册权限
+protocol.registerSchemesAsPrivileged([
+  { scheme: "app", privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true, codeCache: true } },
+])
+
 app.whenReady().then(async () => {
   try {
-    serverPort = await findFreePort()
-    console.log("使用端口:", serverPort)
-    await startServer(serverPort)
-    console.log("NewsNow 服务就绪")
+    initDesktopStorage()
+    registerAppProtocol()
+    await loadDataLayer()
+    console.log("NewsNow 桌面版 v" + VERSION + " 就绪（直抓模式，无子进程）")
   } catch (e) {
     dialog.showErrorBox("启动失败", String(e && e.message || e))
     app.quit()
@@ -488,12 +541,7 @@ app.whenReady().then(async () => {
 })
 
 app.on("window-all-closed", () => {
-  stopServer()
   app.quit()
-})
-
-app.on("before-quit", () => {
-  stopServer()
 })
 
 app.on("activate", () => {

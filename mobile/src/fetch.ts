@@ -10,6 +10,10 @@ const isCapacitorNative =
   typeof window !== "undefined" &&
   (window as any).capacitor?.isNativePlatform?.()
 
+// Electron 桌面主进程：无 window、有 globalThis.__ELECTRON_MAIN__ 标记（main.cjs 注入）
+const isElectronMain = !isCapacitorNative && typeof window === "undefined" &&
+  typeof (globalThis as any).__ELECTRON_MAIN__ !== "undefined"
+
 // Capacitor HTTP 插件（仅原生平台可用）
 let capHttp: any = null
 if (isCapacitorNative) {
@@ -62,6 +66,20 @@ export async function httpGet<T = any>(
     return res.data as T
   }
 
+  if (isElectronMain) {
+    // Electron 主进程：Node fetch（无 CORS 约束，支持 getSetCookie/arrayBuffer）
+    const res = await fetch(finalUrl, { method: "GET", headers })
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${finalUrl}`)
+    if (options?.responseType === "arrayBuffer") {
+      return await res.arrayBuffer() as unknown as T
+    }
+    const text = await res.text()
+    if (options?.responseType === "json") {
+      try { return JSON.parse(text) as T } catch { return text as unknown as T }
+    }
+    try { return JSON.parse(text) as T } catch { return text as unknown as T }
+  }
+
   // 浏览器/Electron：标准 fetch
   const res = await fetch(finalUrl, {
     method: "GET",
@@ -110,6 +128,17 @@ export async function httpGetRaw(
     ...options?.headers,
   }
 
+  if (isElectronMain) {
+    // Electron 主进程：Node fetch，headers.getSetCookie() 可用
+    const res = await fetch(finalUrl, { method: "GET", headers })
+    const text = await res.text()
+    return {
+      data: text,
+      headers: res.headers as any,
+      status: res.status,
+    }
+  }
+
   if (capHttp) {
     const res = await capHttp.get({
       url: finalUrl,
@@ -130,6 +159,21 @@ export async function httpGetRaw(
 
 // myFetch.raw 兼容（ofetch 风格）
 ;(myFetch as any).raw = async (url: string, options?: FetchOptions) => {
+  if (isElectronMain) {
+    // Electron 主进程：直接用 Node fetch 响应（headers.getSetCookie 原生支持）
+    const finalUrl = buildUrl(url, options?.query)
+    const headers = {
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+      ...options?.headers,
+    }
+    const res = await fetch(finalUrl, { method: "GET", headers })
+    return {
+      headers: res.headers,
+      _data: await res.text(),
+      status: res.status,
+    }
+  }
   const r = await httpGetRaw(url, options)
   return {
     headers: {

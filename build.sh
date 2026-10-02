@@ -1,19 +1,16 @@
 #!/usr/bin/env bash
-# NewsNow Desktop - 从源码构建 NewsNow 前端+服务端
-# 产物输出到 app/ 目录
+# NewsNow Desktop v2.0 - 从源码构建前端与数据层
+# 产物：web/（React 前端静态资源）+ data-layer.mjs（数据层 bundle）
 
 set -e
 DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
 
-echo "=== NewsNow Desktop 构建脚本 ==="
-echo "此脚本会克隆 NewsNow 原项目、安装依赖、构建，并将产物复制到 app/ 目录。"
-echo ""
+echo "=== NewsNow Desktop v2.0 构建 ==="
 
 if ! command -v pnpm &>/dev/null; then
   echo "[错误] 未找到 pnpm，请先安装：npm install -g pnpm"
   exit 1
 fi
-
 if ! command -v git &>/dev/null; then
   echo "[错误] 未找到 git"
   exit 1
@@ -32,9 +29,19 @@ pnpm install
 echo "→ 构建..."
 pnpm build
 
-echo "→ 复制产物到 $DIR/app/ ..."
-rm -rf "$DIR/app"
-cp -r "$TMPDIR/newsnow/dist/output" "$DIR/app"
+echo "→ 复制前端产物到 $DIR/web/ ..."
+rm -rf "$DIR/web"
+mkdir -p "$DIR/web"
+cp -r "$TMPDIR/newsnow/dist/output/public/." "$DIR/web/"
+
+echo "→ 构建数据层 data-layer.mjs ..."
+cd "$DIR"
+if [ -d "mobile/node_modules" ] || npm --prefix mobile install &>/dev/null; then
+  node scripts/build-data.mjs
+else
+  echo "[提示] mobile 依赖安装失败，数据层未重建（保留现有 data-layer.mjs）"
+fi
 
 echo ""
-echo "✓ 构建完成！现在请运行 ./setup.sh (Linux/macOS) 或 setup.bat (Windows) 安装原生依赖。"
+echo "✓ 构建完成！运行 ./start.sh (Linux/macOS) 或 start.bat (Windows) 启动。"
+echo "  （v2.0 无需 setup 安装步骤，无原生模块依赖）"

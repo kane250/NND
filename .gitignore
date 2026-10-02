@@ -1,7 +1,7 @@
-# 依赖（平台特定，需 setup 安装）
-app/server/node_modules/
+# 依赖（mobile 端 node_modules 需 npm install）
+mobile/node_modules/
 
-# 运行时缓存
+# 运行时缓存（桌面端写 userData，不落仓库）
 .data/
 
 # 临时文件
@@ -15,16 +15,10 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Electron 构建/打包输出
-dist/
-out/
-release/
-
-# 移动端构建产物
+# 构建中间产物
+mobile/www/
 mobile/android/app/build/
 mobile/android/.gradle/
 mobile/android/build/
 mobile/ios/App/App/public/
 mobile/release/*.apk
-mobile/node_modules/
-mobile/www/
