@@ -9,6 +9,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, "..")
 const assetsDir = join(ROOT, "web", "assets")
 
+// 从 package.json 读取版本号（确保与 main.cjs 一致）
+const pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"))
+const VERSION = pkg.version
+
 // 找到前端 bundle（优先 v2 版本）
 const files = existsSync(assetsDir)
   ? readdirSync(assetsDir).filter(f => /^index-[A-Za-z0-9-]+\.js$/.test(f))
@@ -36,8 +40,16 @@ function replace(oldStr, newStr, desc) {
 
 console.log("→ 应用品牌定制补丁...")
 
-// 1. 版本号：0.0.42 → 2.0.0
-replace('fk="0.0.42"', 'fk="2.0.0"', "版本号 0.0.42 → 2.0.0")
+// 1. 版本号：将 bundle 中 fk="任意旧版本" 替换为 package.json 版本号
+// 匹配 fk="x.y.z" 格式（无论旧值是什么）
+const versionMatch = code.match(/fk="(\d+\.\d+\.\d+)"/)
+if (versionMatch && versionMatch[1] !== VERSION) {
+  code = code.replace(`fk="${versionMatch[1]}"`, `fk="${VERSION}"`)
+  changes++
+  console.log(`  ✓ 版本号 ${versionMatch[1]} → ${VERSION}`)
+} else {
+  console.log(`  ✓ 版本号已是 ${VERSION}`)
+}
 
 // 2. 作者信息：ourongxing → TeleAgent (kane250)
 replace(
