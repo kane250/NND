@@ -62,6 +62,35 @@ import rfi from "./sources/rfi"
 import nyt from "./sources/nyt"
 import ft from "./sources/ft"
 
+// 虫部落 RSS 源（27 个）
+import zhihuDaily from "./sources/zhihu_daily"
+import yicaiNews from "./sources/yicai_news"
+import doubanHotAll from "./sources/douban_hot_all"
+import doubanMovie from "./sources/douban_movie"
+import doubanTv from "./sources/douban_tv"
+import doubanBook from "./sources/douban_book"
+import gelonghuiLive from "./sources/gelonghui_live"
+import blockbeats from "./sources/blockbeats"
+import banyuetan from "./sources/banyuetan"
+import wereadNewbook from "./sources/weread_newbook"
+import wereadTop from "./sources/weread_top"
+import peoplePolitics from "./sources/people_politics"
+import peopleSociety from "./sources/people_society"
+import peopleWorld from "./sources/people_world"
+import peopleMilitary from "./sources/people_military"
+import dgtle from "./sources/dgtle"
+import ifanr from "./sources/ifanr"
+import feng from "./sources/feng"
+import chinanewsScroll from "./sources/chinanews_scroll"
+import jiemian from "./sources/jiemian"
+import iplaysoft from "./sources/iplaysoft"
+import geekpark from "./sources/geekpark"
+import tmtpost from "./sources/tmtpost"
+import digitaling from "./sources/digitaling"
+import woshipm from "./sources/woshipm"
+import govPolicy from "./sources/gov_policy"
+import govNews from "./sources/gov_news"
+
 // 注册表：SourceID -> getter 函数（或多个子源的对象）
 const sourceModules: Record<string, SourceGetter | Record<string, SourceGetter>> = {
   v2ex,
@@ -118,6 +147,34 @@ const sourceModules: Record<string, SourceGetter | Record<string, SourceGetter>>
   rfi,
   nyt,
   ft,
+  // 虫部落 RSS 源
+  "zhihu-daily": zhihuDaily,
+  "yicai-news": yicaiNews,
+  "douban-hot-all": doubanHotAll,
+  "douban-movie": doubanMovie,
+  "douban-tv": doubanTv,
+  "douban-book": doubanBook,
+  "gelonghui-live": gelonghuiLive,
+  blockbeats,
+  banyuetan,
+  "weread-newbook": wereadNewbook,
+  "weread-top": wereadTop,
+  "people-politics": peoplePolitics,
+  "people-society": peopleSociety,
+  "people-world": peopleWorld,
+  "people-military": peopleMilitary,
+  dgtle,
+  ifanr,
+  feng,
+  "chinanews-scroll": chinanewsScroll,
+  jiemian,
+  iplaysoft,
+  geekpark,
+  tmtpost,
+  digitaling,
+  woshipm,
+  "gov-policy": govPolicy,
+  "gov-news": govNews,
 }
 
 // 构建 getters 映射表（展开子源）

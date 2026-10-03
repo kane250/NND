@@ -649,6 +649,276 @@ var init_sources_data = __esm({
         color: "salmon",
         interval: 6e5,
         home: "https://www.ftchinese.com"
+      },
+      "zhihu-daily": {
+        name: "\u77E5\u4E4E\u65E5\u62A5",
+        title: "\u77E5\u4E4E\u65E5\u62A5",
+        type: "hottest",
+        column: "china",
+        home: "https://rsshub.dicomp.net",
+        color: "red",
+        interval: 6e5,
+        _rss: "https://rsshub.dicomp.net/zhihu/daily"
+      },
+      "yicai-news": {
+        name: "\u7B2C\u4E00\u8D22\u7ECF",
+        title: "\u7B2C\u4E00\u8D22\u7ECF",
+        type: "hottest",
+        column: "finance",
+        home: "https://rsshub.dicomp.net",
+        color: "green",
+        interval: 6e5,
+        _rss: "https://rsshub.dicomp.net/yicai/news"
+      },
+      "douban-hot-all": {
+        name: "\u8C46\u74E3\u70ED\u95E8\u4E66\u5F71\u97F3",
+        title: "\u8C46\u74E3\u70ED\u95E8\u4E66\u5F71\u97F3",
+        type: "hottest",
+        column: "china",
+        home: "https://rsshub.dicomp.net",
+        color: "red",
+        interval: 6e5,
+        _rss: "https://rsshub.dicomp.net/douban/list/subject_real_time_hotest"
+      },
+      "douban-movie": {
+        name: "\u8C46\u74E3\u70ED\u95E8\u7535\u5F71",
+        title: "\u8C46\u74E3\u70ED\u95E8\u7535\u5F71",
+        type: "hottest",
+        column: "china",
+        home: "https://rsshub.dicomp.net",
+        color: "red",
+        interval: 6e5,
+        _rss: "https://rsshub.dicomp.net/douban/list/movie_real_time_hotest"
+      },
+      "douban-tv": {
+        name: "\u8C46\u74E3\u70ED\u95E8\u7535\u89C6",
+        title: "\u8C46\u74E3\u70ED\u95E8\u7535\u89C6",
+        type: "hottest",
+        column: "china",
+        home: "https://rsshub.dicomp.net",
+        color: "red",
+        interval: 6e5,
+        _rss: "https://rsshub.dicomp.net/douban/list/tv_real_time_hotest"
+      },
+      "douban-book": {
+        name: "\u8C46\u74E3\u70ED\u95E8\u4E66\u7C4D",
+        title: "\u8C46\u74E3\u70ED\u95E8\u4E66\u7C4D",
+        type: "hottest",
+        column: "china",
+        home: "https://rsshub.dicomp.net",
+        color: "red",
+        interval: 6e5,
+        _rss: "https://rsshub.dicomp.net/douban/book/rank/fiction"
+      },
+      "gelonghui-live": {
+        name: "\u683C\u9686\u6C47\u5FEB\u8BAF",
+        title: "\u683C\u9686\u6C47\u5FEB\u8BAF",
+        type: "hottest",
+        column: "finance",
+        home: "https://rsshub.dicomp.net",
+        color: "green",
+        interval: 6e5,
+        _rss: "https://rsshub.dicomp.net/gelonghui/live"
+      },
+      blockbeats: {
+        name: "\u5F8B\u52A8\u5FEB\u8BAF",
+        title: "\u5F8B\u52A8\u5FEB\u8BAF",
+        type: "hottest",
+        column: "finance",
+        home: "https://rsshub.dicomp.net",
+        color: "green",
+        interval: 6e5,
+        _rss: "https://rsshub.dicomp.net/theblockbeats/newsflash"
+      },
+      banyuetan: {
+        name: "\u534A\u6708\u8C08",
+        title: "\u534A\u6708\u8C08",
+        type: "hottest",
+        column: "china",
+        home: "https://rsshub.dicomp.net",
+        color: "red",
+        interval: 6e5,
+        _rss: "https://rsshub.dicomp.net/banyuetan/jinritan"
+      },
+      "weread-newbook": {
+        name: "\u5FAE\u4FE1\u8BFB\u4E66\u65B0\u4E66\u699C",
+        title: "\u5FAE\u4FE1\u8BFB\u4E66\u65B0\u4E66\u699C",
+        type: "hottest",
+        column: "china",
+        home: "https://rsshub.dicomp.net",
+        color: "red",
+        interval: 6e5,
+        _rss: "https://rsshub.dicomp.net/qq/weread/newbook"
+      },
+      "weread-top": {
+        name: "\u5FAE\u4FE1\u8BFB\u4E66Top200",
+        title: "\u5FAE\u4FE1\u8BFB\u4E66Top200",
+        type: "hottest",
+        column: "china",
+        home: "https://rsshub.dicomp.net",
+        color: "red",
+        interval: 6e5,
+        _rss: "https://rsshub.dicomp.net/qq/weread/all"
+      },
+      "people-politics": {
+        name: "\u4EBA\u6C11\u65E5\u62A5\u65F6\u653F",
+        title: "\u4EBA\u6C11\u65E5\u62A5\u65F6\u653F",
+        type: "hottest",
+        column: "china",
+        home: "http://www.people.com.cn",
+        color: "red",
+        interval: 6e5,
+        _rss: "http://www.people.com.cn/rss/politics.xml"
+      },
+      "people-society": {
+        name: "\u4EBA\u6C11\u65E5\u62A5\u793E\u4F1A",
+        title: "\u4EBA\u6C11\u65E5\u62A5\u793E\u4F1A",
+        type: "hottest",
+        column: "china",
+        home: "http://www.people.com.cn",
+        color: "red",
+        interval: 6e5,
+        _rss: "http://www.people.com.cn/rss/society.xml"
+      },
+      "people-world": {
+        name: "\u4EBA\u6C11\u65E5\u62A5\u56FD\u9645",
+        title: "\u4EBA\u6C11\u65E5\u62A5\u56FD\u9645",
+        type: "hottest",
+        column: "world",
+        home: "http://www.people.com.cn",
+        color: "teal",
+        interval: 6e5,
+        _rss: "http://www.people.com.cn/rss/world.xml"
+      },
+      "people-military": {
+        name: "\u4EBA\u6C11\u65E5\u62A5\u519B\u4E8B",
+        title: "\u4EBA\u6C11\u65E5\u62A5\u519B\u4E8B",
+        type: "hottest",
+        column: "china",
+        home: "http://www.people.com.cn",
+        color: "red",
+        interval: 6e5,
+        _rss: "http://www.people.com.cn/rss/military.xml"
+      },
+      dgtle: {
+        name: "\u6570\u5B57\u5C3E\u5DF4",
+        title: "\u6570\u5B57\u5C3E\u5DF4",
+        type: "hottest",
+        column: "tech",
+        home: "https://www.dgtle.com",
+        color: "blue",
+        interval: 6e5,
+        _rss: "https://www.dgtle.com/rss/dgtle.xml"
+      },
+      ifanr: {
+        name: "\u7231\u8303\u513F",
+        title: "\u7231\u8303\u513F",
+        type: "hottest",
+        column: "tech",
+        home: "https://www.ifanr.com",
+        color: "blue",
+        interval: 6e5,
+        _rss: "https://www.ifanr.com/feed"
+      },
+      feng: {
+        name: "\u5A01\u950B\u7F51",
+        title: "\u5A01\u950B\u7F51",
+        type: "hottest",
+        column: "tech",
+        home: "https://www.feng.com",
+        color: "blue",
+        interval: 6e5,
+        _rss: "https://www.feng.com/rss.xml"
+      },
+      "chinanews-scroll": {
+        name: "\u4E2D\u65B0\u7F51\u5373\u65F6",
+        title: "\u4E2D\u65B0\u7F51\u5373\u65F6",
+        type: "hottest",
+        column: "china",
+        home: "https://www.chinanews.com.cn",
+        color: "red",
+        interval: 6e5,
+        _rss: "https://www.chinanews.com.cn/rss/scroll-news.xml"
+      },
+      jiemian: {
+        name: "\u754C\u9762\u65B0\u95FB",
+        title: "\u754C\u9762\u65B0\u95FB",
+        type: "hottest",
+        column: "china",
+        home: "https://a.jiemian.com",
+        color: "red",
+        interval: 6e5,
+        _rss: "https://a.jiemian.com/index.php?m=article&a=rss"
+      },
+      iplaysoft: {
+        name: "\u5F02\u6B21\u5143\u8F6F\u4EF6",
+        title: "\u5F02\u6B21\u5143\u8F6F\u4EF6",
+        type: "hottest",
+        column: "tech",
+        home: "https://feed.iplaysoft.com",
+        color: "blue",
+        interval: 6e5,
+        _rss: "https://feed.iplaysoft.com/"
+      },
+      geekpark: {
+        name: "\u6781\u5BA2\u516C\u56ED",
+        title: "\u6781\u5BA2\u516C\u56ED",
+        type: "hottest",
+        column: "tech",
+        home: "https://www.geekpark.net",
+        color: "blue",
+        interval: 6e5,
+        _rss: "https://www.geekpark.net/rss"
+      },
+      tmtpost: {
+        name: "\u949B\u5A92\u4F53",
+        title: "\u949B\u5A92\u4F53",
+        type: "hottest",
+        column: "tech",
+        home: "https://www.tmtpost.com",
+        color: "blue",
+        interval: 6e5,
+        _rss: "https://www.tmtpost.com/feed"
+      },
+      digitaling: {
+        name: "\u6570\u82F1\u7F51",
+        title: "\u6570\u82F1\u7F51",
+        type: "hottest",
+        column: "tech",
+        home: "https://www.digitaling.com",
+        color: "blue",
+        interval: 6e5,
+        _rss: "https://www.digitaling.com/rss"
+      },
+      woshipm: {
+        name: "\u4EA7\u54C1\u7ECF\u7406",
+        title: "\u4EA7\u54C1\u7ECF\u7406",
+        type: "hottest",
+        column: "tech",
+        home: "http://www.woshipm.com",
+        color: "blue",
+        interval: 6e5,
+        _rss: "http://www.woshipm.com/feed"
+      },
+      "gov-policy": {
+        name: "\u56FD\u52A1\u9662\u653F\u7B56",
+        title: "\u56FD\u52A1\u9662\u653F\u7B56",
+        type: "hottest",
+        column: "china",
+        home: "http://www.gov.cn",
+        color: "red",
+        interval: 6e5,
+        _rss: "http://www.gov.cn/govweb/jsonTag/tp/rss.xml"
+      },
+      "gov-news": {
+        name: "\u56FD\u52A1\u9662\u65B0\u95FB",
+        title: "\u56FD\u52A1\u9662\u65B0\u95FB",
+        type: "hottest",
+        column: "china",
+        home: "http://www.gov.cn",
+        color: "red",
+        interval: 6e5,
+        _rss: "http://www.gov.cn/pushinfo/v150203/rss.xml"
       }
     };
   }
@@ -23813,6 +24083,249 @@ var init_ft = __esm({
   }
 });
 
+// mobile/src/sources/zhihu_daily.ts
+var zhihu_daily_default;
+var init_zhihu_daily = __esm({
+  "mobile/src/sources/zhihu_daily.ts"() {
+    init_define();
+    zhihu_daily_default = defineRSSSource("https://rsshub.dicomp.net/zhihu/daily", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/yicai_news.ts
+var yicai_news_default;
+var init_yicai_news = __esm({
+  "mobile/src/sources/yicai_news.ts"() {
+    init_define();
+    yicai_news_default = defineRSSSource("https://rsshub.dicomp.net/yicai/news", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/douban_hot_all.ts
+var douban_hot_all_default;
+var init_douban_hot_all = __esm({
+  "mobile/src/sources/douban_hot_all.ts"() {
+    init_define();
+    douban_hot_all_default = defineRSSSource("https://rsshub.dicomp.net/douban/list/subject_real_time_hotest", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/douban_movie.ts
+var douban_movie_default;
+var init_douban_movie = __esm({
+  "mobile/src/sources/douban_movie.ts"() {
+    init_define();
+    douban_movie_default = defineRSSSource("https://rsshub.dicomp.net/douban/list/movie_real_time_hotest", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/douban_tv.ts
+var douban_tv_default;
+var init_douban_tv = __esm({
+  "mobile/src/sources/douban_tv.ts"() {
+    init_define();
+    douban_tv_default = defineRSSSource("https://rsshub.dicomp.net/douban/list/tv_real_time_hotest", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/douban_book.ts
+var douban_book_default;
+var init_douban_book = __esm({
+  "mobile/src/sources/douban_book.ts"() {
+    init_define();
+    douban_book_default = defineRSSSource("https://rsshub.dicomp.net/douban/book/rank/fiction", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/gelonghui_live.ts
+var gelonghui_live_default;
+var init_gelonghui_live = __esm({
+  "mobile/src/sources/gelonghui_live.ts"() {
+    init_define();
+    gelonghui_live_default = defineRSSSource("https://rsshub.dicomp.net/gelonghui/live", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/blockbeats.ts
+var blockbeats_default;
+var init_blockbeats = __esm({
+  "mobile/src/sources/blockbeats.ts"() {
+    init_define();
+    blockbeats_default = defineRSSSource("https://rsshub.dicomp.net/theblockbeats/newsflash", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/banyuetan.ts
+var banyuetan_default;
+var init_banyuetan = __esm({
+  "mobile/src/sources/banyuetan.ts"() {
+    init_define();
+    banyuetan_default = defineRSSSource("https://rsshub.dicomp.net/banyuetan/jinritan", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/weread_newbook.ts
+var weread_newbook_default;
+var init_weread_newbook = __esm({
+  "mobile/src/sources/weread_newbook.ts"() {
+    init_define();
+    weread_newbook_default = defineRSSSource("https://rsshub.dicomp.net/qq/weread/newbook", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/weread_top.ts
+var weread_top_default;
+var init_weread_top = __esm({
+  "mobile/src/sources/weread_top.ts"() {
+    init_define();
+    weread_top_default = defineRSSSource("https://rsshub.dicomp.net/qq/weread/all", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/people_politics.ts
+var people_politics_default;
+var init_people_politics = __esm({
+  "mobile/src/sources/people_politics.ts"() {
+    init_define();
+    people_politics_default = defineRSSSource("http://www.people.com.cn/rss/politics.xml", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/people_society.ts
+var people_society_default;
+var init_people_society = __esm({
+  "mobile/src/sources/people_society.ts"() {
+    init_define();
+    people_society_default = defineRSSSource("http://www.people.com.cn/rss/society.xml", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/people_world.ts
+var people_world_default;
+var init_people_world = __esm({
+  "mobile/src/sources/people_world.ts"() {
+    init_define();
+    people_world_default = defineRSSSource("http://www.people.com.cn/rss/world.xml", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/people_military.ts
+var people_military_default;
+var init_people_military = __esm({
+  "mobile/src/sources/people_military.ts"() {
+    init_define();
+    people_military_default = defineRSSSource("http://www.people.com.cn/rss/military.xml", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/dgtle.ts
+var dgtle_default;
+var init_dgtle = __esm({
+  "mobile/src/sources/dgtle.ts"() {
+    init_define();
+    dgtle_default = defineRSSSource("https://www.dgtle.com/rss/dgtle.xml", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/ifanr.ts
+var ifanr_default;
+var init_ifanr = __esm({
+  "mobile/src/sources/ifanr.ts"() {
+    init_define();
+    ifanr_default = defineRSSSource("https://www.ifanr.com/feed", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/feng.ts
+var feng_default;
+var init_feng = __esm({
+  "mobile/src/sources/feng.ts"() {
+    init_define();
+    feng_default = defineRSSSource("https://www.feng.com/rss.xml", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/chinanews_scroll.ts
+var chinanews_scroll_default;
+var init_chinanews_scroll = __esm({
+  "mobile/src/sources/chinanews_scroll.ts"() {
+    init_define();
+    chinanews_scroll_default = defineRSSSource("https://www.chinanews.com.cn/rss/scroll-news.xml", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/jiemian.ts
+var jiemian_default;
+var init_jiemian = __esm({
+  "mobile/src/sources/jiemian.ts"() {
+    init_define();
+    jiemian_default = defineRSSSource("https://a.jiemian.com/index.php?m=article&a=rss", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/iplaysoft.ts
+var iplaysoft_default;
+var init_iplaysoft = __esm({
+  "mobile/src/sources/iplaysoft.ts"() {
+    init_define();
+    iplaysoft_default = defineRSSSource("https://feed.iplaysoft.com/", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/geekpark.ts
+var geekpark_default;
+var init_geekpark = __esm({
+  "mobile/src/sources/geekpark.ts"() {
+    init_define();
+    geekpark_default = defineRSSSource("https://www.geekpark.net/rss", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/tmtpost.ts
+var tmtpost_default;
+var init_tmtpost = __esm({
+  "mobile/src/sources/tmtpost.ts"() {
+    init_define();
+    tmtpost_default = defineRSSSource("https://www.tmtpost.com/feed", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/digitaling.ts
+var digitaling_default;
+var init_digitaling = __esm({
+  "mobile/src/sources/digitaling.ts"() {
+    init_define();
+    digitaling_default = defineRSSSource("https://www.digitaling.com/rss", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/woshipm.ts
+var woshipm_default;
+var init_woshipm = __esm({
+  "mobile/src/sources/woshipm.ts"() {
+    init_define();
+    woshipm_default = defineRSSSource("http://www.woshipm.com/feed", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/gov_policy.ts
+var gov_policy_default;
+var init_gov_policy = __esm({
+  "mobile/src/sources/gov_policy.ts"() {
+    init_define();
+    gov_policy_default = defineRSSSource("http://www.gov.cn/govweb/jsonTag/tp/rss.xml", { hiddenDate: false });
+  }
+});
+
+// mobile/src/sources/gov_news.ts
+var gov_news_default;
+var init_gov_news = __esm({
+  "mobile/src/sources/gov_news.ts"() {
+    init_define();
+    gov_news_default = defineRSSSource("http://www.gov.cn/pushinfo/v150203/rss.xml", { hiddenDate: false });
+  }
+});
+
 // mobile/src/getters.ts
 var getters_exports = {};
 __export(getters_exports, {
@@ -23915,6 +24428,33 @@ var init_getters = __esm({
     init_rfi();
     init_nyt();
     init_ft();
+    init_zhihu_daily();
+    init_yicai_news();
+    init_douban_hot_all();
+    init_douban_movie();
+    init_douban_tv();
+    init_douban_book();
+    init_gelonghui_live();
+    init_blockbeats();
+    init_banyuetan();
+    init_weread_newbook();
+    init_weread_top();
+    init_people_politics();
+    init_people_society();
+    init_people_world();
+    init_people_military();
+    init_dgtle();
+    init_ifanr();
+    init_feng();
+    init_chinanews_scroll();
+    init_jiemian();
+    init_iplaysoft();
+    init_geekpark();
+    init_tmtpost();
+    init_digitaling();
+    init_woshipm();
+    init_gov_policy();
+    init_gov_news();
     sourceModules = {
       v2ex: v2ex_default,
       zhihu: zhihu_default,
@@ -23969,7 +24509,35 @@ var init_getters = __esm({
       "36kr-hot": kr_hot_default,
       rfi: rfi_default,
       nyt: nyt_default,
-      ft: ft_default
+      ft: ft_default,
+      // 虫部落 RSS 源
+      "zhihu-daily": zhihu_daily_default,
+      "yicai-news": yicai_news_default,
+      "douban-hot-all": douban_hot_all_default,
+      "douban-movie": douban_movie_default,
+      "douban-tv": douban_tv_default,
+      "douban-book": douban_book_default,
+      "gelonghui-live": gelonghui_live_default,
+      blockbeats: blockbeats_default,
+      banyuetan: banyuetan_default,
+      "weread-newbook": weread_newbook_default,
+      "weread-top": weread_top_default,
+      "people-politics": people_politics_default,
+      "people-society": people_society_default,
+      "people-world": people_world_default,
+      "people-military": people_military_default,
+      dgtle: dgtle_default,
+      ifanr: ifanr_default,
+      feng: feng_default,
+      "chinanews-scroll": chinanews_scroll_default,
+      jiemian: jiemian_default,
+      iplaysoft: iplaysoft_default,
+      geekpark: geekpark_default,
+      tmtpost: tmtpost_default,
+      digitaling: digitaling_default,
+      woshipm: woshipm_default,
+      "gov-policy": gov_policy_default,
+      "gov-news": gov_news_default
     };
     getters = {};
     for (const [id, mod] of Object.entries(sourceModules)) {
