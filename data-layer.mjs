@@ -37,15 +37,6 @@ var sources_data_default;
 var init_sources_data = __esm({
   "mobile/src/sources-data.json"() {
     sources_data_default = {
-      v2ex: {
-        redirect: "v2ex-share",
-        name: "V2EX",
-        column: "tech",
-        home: "https://v2ex.com/",
-        color: "slate",
-        interval: 6e5,
-        title: "\u6700\u65B0\u5206\u4EAB"
-      },
       "v2ex-share": {
         name: "V2EX",
         column: "tech",
@@ -60,7 +51,8 @@ var init_sources_data = __esm({
         column: "china",
         home: "https://www.zhihu.com",
         color: "blue",
-        interval: 6e5
+        interval: 6e5,
+        title: "\u70ED\u699C"
       },
       weibo: {
         title: "\u5B9E\u65F6\u70ED\u641C",
@@ -89,31 +81,12 @@ var init_sources_data = __esm({
         color: "green",
         interval: 6e5
       },
-      mktnews: {
-        redirect: "mktnews-flash",
-        name: "MKTNews",
-        column: "finance",
-        home: "https://mktnews.net",
-        color: "indigo",
-        interval: 12e4,
-        title: "\u5FEB\u8BAF"
-      },
       "mktnews-flash": {
         name: "MKTNews",
         column: "finance",
         home: "https://mktnews.net",
         color: "indigo",
         interval: 12e4,
-        title: "\u5FEB\u8BAF"
-      },
-      wallstreetcn: {
-        redirect: "wallstreetcn-quick",
-        name: "\u534E\u5C14\u8857\u89C1\u95FB",
-        type: "realtime",
-        column: "finance",
-        home: "https://wallstreetcn.com/",
-        color: "blue",
-        interval: 3e5,
         title: "\u5FEB\u8BAF"
       },
       "wallstreetcn-quick": {
@@ -142,17 +115,6 @@ var init_sources_data = __esm({
         interval: 18e5,
         title: "\u6700\u70ED"
       },
-      "36kr": {
-        redirect: "36kr-quick",
-        name: "36\u6C2A",
-        type: "realtime",
-        disable: "cf",
-        column: "tech",
-        home: "https://36kr.com",
-        color: "blue",
-        interval: 6e5,
-        title: "\u5FEB\u8BAF"
-      },
       "36kr-quick": {
         name: "36\u6C2A",
         type: "realtime",
@@ -179,7 +141,8 @@ var init_sources_data = __esm({
         column: "china",
         home: "https://www.douyin.com",
         color: "gray",
-        interval: 6e5
+        interval: 6e5,
+        title: "\u70ED\u70B9"
       },
       hupu: {
         title: "\u4E3B\u5E72\u9053\u70ED\u5E16",
@@ -222,7 +185,8 @@ var init_sources_data = __esm({
         column: "china",
         home: "https://www.toutiao.com",
         color: "red",
-        interval: 6e5
+        interval: 6e5,
+        title: "\u70ED\u699C"
       },
       ithome: {
         name: "IT\u4E4B\u5BB6",
@@ -255,16 +219,6 @@ var init_sources_data = __esm({
         color: "red",
         interval: 18e5
       },
-      cls: {
-        redirect: "cls-telegraph",
-        name: "\u8D22\u8054\u793E",
-        type: "realtime",
-        column: "finance",
-        home: "https://www.cls.cn",
-        color: "red",
-        interval: 3e5,
-        title: "\u7535\u62A5"
-      },
       "cls-telegraph": {
         name: "\u8D22\u8054\u793E",
         type: "realtime",
@@ -291,16 +245,6 @@ var init_sources_data = __esm({
         interval: 6e5,
         title: "\u70ED\u95E8"
       },
-      xueqiu: {
-        redirect: "xueqiu-hotstock",
-        name: "\u96EA\u7403",
-        type: "hottest",
-        column: "finance",
-        home: "https://xueqiu.com",
-        color: "blue",
-        interval: 12e4,
-        title: "\u70ED\u95E8\u80A1\u7968"
-      },
       "xueqiu-hotstock": {
         name: "\u96EA\u7403",
         type: "hottest",
@@ -318,16 +262,6 @@ var init_sources_data = __esm({
         home: "https://www.gelonghui.com",
         color: "blue",
         interval: 12e4
-      },
-      fastbull: {
-        redirect: "fastbull-express",
-        name: "\u6CD5\u5E03\u8D22\u7ECF",
-        type: "realtime",
-        column: "finance",
-        home: "https://www.fastbull.cn",
-        color: "emerald",
-        interval: 12e4,
-        title: "\u5FEB\u8BAF"
       },
       "fastbull-express": {
         name: "\u6CD5\u5E03\u8D22\u7ECF",
@@ -369,16 +303,6 @@ var init_sources_data = __esm({
         color: "red",
         interval: 6e5
       },
-      bilibili: {
-        redirect: "bilibili-hot-search",
-        name: "\u54D4\u54E9\u54D4\u54E9",
-        type: "hottest",
-        column: "china",
-        home: "https://www.bilibili.com",
-        color: "blue",
-        interval: 6e5,
-        title: "\u70ED\u641C"
-      },
       "bilibili-hot-search": {
         name: "\u54D4\u54E9\u54D4\u54E9",
         type: "hottest",
@@ -415,7 +339,8 @@ var init_sources_data = __esm({
         column: "china",
         home: "https://www.kuaishou.com",
         color: "orange",
-        interval: 6e5
+        interval: 6e5,
+        title: "\u70ED\u70B9"
       },
       kaopu: {
         name: "\u9760\u8C31\u65B0\u95FB",
@@ -444,7 +369,7 @@ var init_sources_data = __esm({
       nowcoder: {
         name: "\u725B\u5BA2",
         type: "hottest",
-        column: "china",
+        column: "tech",
         home: "https://www.nowcoder.com",
         color: "blue",
         interval: 6e5
@@ -455,7 +380,8 @@ var init_sources_data = __esm({
         column: "tech",
         home: "https://sspai.com",
         color: "red",
-        interval: 6e5
+        interval: 6e5,
+        title: "\u70ED\u95E8\u6587\u7AE0"
       },
       juejin: {
         name: "\u7A00\u571F\u6398\u91D1",
@@ -473,15 +399,6 @@ var init_sources_data = __esm({
         home: "https://www.ifeng.com",
         color: "red",
         interval: 6e5
-      },
-      chongbuluo: {
-        redirect: "chongbuluo-latest",
-        name: "\u866B\u90E8\u843D",
-        column: "china",
-        home: "https://www.chongbuluo.com/forum.php?mod=guide&view=newthread",
-        color: "green",
-        interval: 18e5,
-        title: "\u6700\u65B0"
       },
       "chongbuluo-latest": {
         name: "\u866B\u90E8\u843D",
@@ -513,20 +430,10 @@ var init_sources_data = __esm({
         title: "\u5728\u7EBF\u4EBA\u6570",
         name: "Steam",
         type: "hottest",
-        column: "world",
+        column: "tech",
         home: "https://store.steampowered.com",
         color: "blue",
         interval: 6e5
-      },
-      tencent: {
-        redirect: "tencent-hot",
-        name: "\u817E\u8BAF\u65B0\u95FB",
-        type: "hottest",
-        column: "china",
-        home: "https://news.qq.com/tag/aEWqxLtdgmQ=",
-        color: "blue",
-        interval: 18e5,
-        title: "\u7EFC\u5408\u65E9\u62A5"
       },
       "tencent-hot": {
         name: "\u817E\u8BAF\u65B0\u95FB",
@@ -541,20 +448,10 @@ var init_sources_data = __esm({
         title: "\u7F51\u7EDC\u5B89\u5168",
         name: "Freebuf",
         type: "hottest",
-        column: "china",
+        column: "tech",
         home: "https://www.freebuf.com/",
         color: "green",
         interval: 6e5
-      },
-      iqiyi: {
-        redirect: "iqiyi-hot-ranklist",
-        name: "\u7231\u5947\u827A",
-        type: "hottest",
-        column: "china",
-        home: "https://www.iqiyi.com",
-        color: "green",
-        interval: 18e5,
-        title: "\u70ED\u64AD\u699C"
       },
       "iqiyi-hot-ranklist": {
         name: "\u7231\u5947\u827A",
@@ -587,7 +484,8 @@ var init_sources_data = __esm({
         column: "china",
         color: "red",
         interval: 6e5,
-        home: "https://news.cctv.com"
+        home: "https://news.cctv.com",
+        title: "\u65B0\u95FB"
       },
       cnbeta: {
         name: "cnBeta",
@@ -652,7 +550,6 @@ var init_sources_data = __esm({
       },
       "zhihu-daily": {
         name: "\u77E5\u4E4E\u65E5\u62A5",
-        title: "\u77E5\u4E4E\u65E5\u62A5",
         type: "hottest",
         column: "china",
         home: "https://rsshub.dicomp.net",
@@ -662,7 +559,6 @@ var init_sources_data = __esm({
       },
       "yicai-news": {
         name: "\u7B2C\u4E00\u8D22\u7ECF",
-        title: "\u7B2C\u4E00\u8D22\u7ECF",
         type: "hottest",
         column: "finance",
         home: "https://rsshub.dicomp.net",
@@ -671,8 +567,8 @@ var init_sources_data = __esm({
         _rss: "https://rsshub.dicomp.net/yicai/news"
       },
       "douban-hot-all": {
-        name: "\u8C46\u74E3\u70ED\u95E8\u4E66\u5F71\u97F3",
-        title: "\u8C46\u74E3\u70ED\u95E8\u4E66\u5F71\u97F3",
+        name: "\u8C46\u74E3",
+        title: "\u70ED\u95E8\u4E66\u5F71\u97F3",
         type: "hottest",
         column: "china",
         home: "https://rsshub.dicomp.net",
@@ -680,19 +576,9 @@ var init_sources_data = __esm({
         interval: 6e5,
         _rss: "https://rsshub.dicomp.net/douban/list/subject_real_time_hotest"
       },
-      "douban-movie": {
-        name: "\u8C46\u74E3\u70ED\u95E8\u7535\u5F71",
-        title: "\u8C46\u74E3\u70ED\u95E8\u7535\u5F71",
-        type: "hottest",
-        column: "china",
-        home: "https://rsshub.dicomp.net",
-        color: "red",
-        interval: 6e5,
-        _rss: "https://rsshub.dicomp.net/douban/list/movie_real_time_hotest"
-      },
       "douban-tv": {
-        name: "\u8C46\u74E3\u70ED\u95E8\u7535\u89C6",
-        title: "\u8C46\u74E3\u70ED\u95E8\u7535\u89C6",
+        name: "\u8C46\u74E3",
+        title: "\u70ED\u95E8\u5267\u96C6",
         type: "hottest",
         column: "china",
         home: "https://rsshub.dicomp.net",
@@ -701,8 +587,8 @@ var init_sources_data = __esm({
         _rss: "https://rsshub.dicomp.net/douban/list/tv_real_time_hotest"
       },
       "douban-book": {
-        name: "\u8C46\u74E3\u70ED\u95E8\u4E66\u7C4D",
-        title: "\u8C46\u74E3\u70ED\u95E8\u4E66\u7C4D",
+        name: "\u8C46\u74E3",
+        title: "\u70ED\u95E8\u56FE\u4E66",
         type: "hottest",
         column: "china",
         home: "https://rsshub.dicomp.net",
@@ -711,8 +597,8 @@ var init_sources_data = __esm({
         _rss: "https://rsshub.dicomp.net/douban/book/rank/fiction"
       },
       "gelonghui-live": {
-        name: "\u683C\u9686\u6C47\u5FEB\u8BAF",
-        title: "\u683C\u9686\u6C47\u5FEB\u8BAF",
+        name: "\u683C\u9686\u6C47",
+        title: "\u5FEB\u8BAF",
         type: "hottest",
         column: "finance",
         home: "https://rsshub.dicomp.net",
@@ -722,7 +608,6 @@ var init_sources_data = __esm({
       },
       blockbeats: {
         name: "\u5F8B\u52A8\u5FEB\u8BAF",
-        title: "\u5F8B\u52A8\u5FEB\u8BAF",
         type: "hottest",
         column: "finance",
         home: "https://rsshub.dicomp.net",
@@ -732,7 +617,6 @@ var init_sources_data = __esm({
       },
       banyuetan: {
         name: "\u534A\u6708\u8C08",
-        title: "\u534A\u6708\u8C08",
         type: "hottest",
         column: "china",
         home: "https://rsshub.dicomp.net",
@@ -742,7 +626,6 @@ var init_sources_data = __esm({
       },
       "weread-newbook": {
         name: "\u5FAE\u4FE1\u8BFB\u4E66\u65B0\u4E66\u699C",
-        title: "\u5FAE\u4FE1\u8BFB\u4E66\u65B0\u4E66\u699C",
         type: "hottest",
         column: "china",
         home: "https://rsshub.dicomp.net",
@@ -752,7 +635,6 @@ var init_sources_data = __esm({
       },
       "weread-top": {
         name: "\u5FAE\u4FE1\u8BFB\u4E66Top200",
-        title: "\u5FAE\u4FE1\u8BFB\u4E66Top200",
         type: "hottest",
         column: "china",
         home: "https://rsshub.dicomp.net",
@@ -762,7 +644,6 @@ var init_sources_data = __esm({
       },
       "people-politics": {
         name: "\u4EBA\u6C11\u65E5\u62A5\u65F6\u653F",
-        title: "\u4EBA\u6C11\u65E5\u62A5\u65F6\u653F",
         type: "hottest",
         column: "china",
         home: "http://www.people.com.cn",
@@ -772,7 +653,6 @@ var init_sources_data = __esm({
       },
       "people-society": {
         name: "\u4EBA\u6C11\u65E5\u62A5\u793E\u4F1A",
-        title: "\u4EBA\u6C11\u65E5\u62A5\u793E\u4F1A",
         type: "hottest",
         column: "china",
         home: "http://www.people.com.cn",
@@ -782,7 +662,6 @@ var init_sources_data = __esm({
       },
       "people-world": {
         name: "\u4EBA\u6C11\u65E5\u62A5\u56FD\u9645",
-        title: "\u4EBA\u6C11\u65E5\u62A5\u56FD\u9645",
         type: "hottest",
         column: "world",
         home: "http://www.people.com.cn",
@@ -792,7 +671,6 @@ var init_sources_data = __esm({
       },
       "people-military": {
         name: "\u4EBA\u6C11\u65E5\u62A5\u519B\u4E8B",
-        title: "\u4EBA\u6C11\u65E5\u62A5\u519B\u4E8B",
         type: "hottest",
         column: "china",
         home: "http://www.people.com.cn",
@@ -802,7 +680,6 @@ var init_sources_data = __esm({
       },
       dgtle: {
         name: "\u6570\u5B57\u5C3E\u5DF4",
-        title: "\u6570\u5B57\u5C3E\u5DF4",
         type: "hottest",
         column: "tech",
         home: "https://www.dgtle.com",
@@ -812,7 +689,6 @@ var init_sources_data = __esm({
       },
       ifanr: {
         name: "\u7231\u8303\u513F",
-        title: "\u7231\u8303\u513F",
         type: "hottest",
         column: "tech",
         home: "https://www.ifanr.com",
@@ -822,7 +698,6 @@ var init_sources_data = __esm({
       },
       feng: {
         name: "\u5A01\u950B\u7F51",
-        title: "\u5A01\u950B\u7F51",
         type: "hottest",
         column: "tech",
         home: "https://www.feng.com",
@@ -832,7 +707,6 @@ var init_sources_data = __esm({
       },
       "chinanews-scroll": {
         name: "\u4E2D\u65B0\u7F51\u5373\u65F6",
-        title: "\u4E2D\u65B0\u7F51\u5373\u65F6",
         type: "hottest",
         column: "china",
         home: "https://www.chinanews.com.cn",
@@ -842,7 +716,6 @@ var init_sources_data = __esm({
       },
       jiemian: {
         name: "\u754C\u9762\u65B0\u95FB",
-        title: "\u754C\u9762\u65B0\u95FB",
         type: "hottest",
         column: "china",
         home: "https://a.jiemian.com",
@@ -852,7 +725,6 @@ var init_sources_data = __esm({
       },
       iplaysoft: {
         name: "\u5F02\u6B21\u5143\u8F6F\u4EF6",
-        title: "\u5F02\u6B21\u5143\u8F6F\u4EF6",
         type: "hottest",
         column: "tech",
         home: "https://feed.iplaysoft.com",
@@ -862,7 +734,6 @@ var init_sources_data = __esm({
       },
       geekpark: {
         name: "\u6781\u5BA2\u516C\u56ED",
-        title: "\u6781\u5BA2\u516C\u56ED",
         type: "hottest",
         column: "tech",
         home: "https://www.geekpark.net",
@@ -872,7 +743,6 @@ var init_sources_data = __esm({
       },
       tmtpost: {
         name: "\u949B\u5A92\u4F53",
-        title: "\u949B\u5A92\u4F53",
         type: "hottest",
         column: "tech",
         home: "https://www.tmtpost.com",
@@ -882,7 +752,6 @@ var init_sources_data = __esm({
       },
       digitaling: {
         name: "\u6570\u82F1\u7F51",
-        title: "\u6570\u82F1\u7F51",
         type: "hottest",
         column: "tech",
         home: "https://www.digitaling.com",
@@ -892,7 +761,6 @@ var init_sources_data = __esm({
       },
       woshipm: {
         name: "\u4EA7\u54C1\u7ECF\u7406",
-        title: "\u4EA7\u54C1\u7ECF\u7406",
         type: "hottest",
         column: "tech",
         home: "http://www.woshipm.com",
@@ -902,7 +770,6 @@ var init_sources_data = __esm({
       },
       "gov-policy": {
         name: "\u56FD\u52A1\u9662\u653F\u7B56",
-        title: "\u56FD\u52A1\u9662\u653F\u7B56",
         type: "hottest",
         column: "china",
         home: "http://www.gov.cn",
@@ -912,7 +779,6 @@ var init_sources_data = __esm({
       },
       "gov-news": {
         name: "\u56FD\u52A1\u9662\u65B0\u95FB",
-        title: "\u56FD\u52A1\u9662\u65B0\u95FB",
         type: "hottest",
         column: "china",
         home: "http://www.gov.cn",
@@ -6167,7 +6033,6 @@ var init_v2ex = __esm({
       })).sort((m, n) => m.extra.date < n.extra.date ? 1 : -1);
     });
     v2ex_default = defineSource({
-      "v2ex": share,
       "v2ex-share": share
     });
   }
@@ -22698,7 +22563,6 @@ var init_mktnews = __esm({
       }));
     });
     mktnews_default = defineSource({
-      "mktnews": flash,
       "mktnews-flash": flash
     });
   }
@@ -22750,7 +22614,6 @@ var init_wallstreetcn = __esm({
       });
     });
     wallstreetcn_default = defineSource({
-      "wallstreetcn": live,
       "wallstreetcn-quick": live,
       "wallstreetcn-news": news,
       "wallstreetcn-hot": hot
@@ -22832,7 +22695,6 @@ var init_kr = __esm({
       return articles.length ? articles : quick();
     });
     kr_default = defineSource({
-      "36kr": quick,
       "36kr-quick": quick,
       "36kr-renqi": renqi
     });
@@ -23157,7 +23019,6 @@ var init_cls = __esm({
       });
     });
     cls_default = defineSource({
-      "cls": telegraph,
       "cls-telegraph": telegraph,
       "cls-depth": depth,
       "cls-hot": hot2
@@ -23190,7 +23051,6 @@ var init_xueqiu = __esm({
       }));
     });
     xueqiu_default = defineSource({
-      "xueqiu": hotstock,
       "xueqiu-hotstock": hotstock
     });
   }
@@ -23289,7 +23149,6 @@ var init_fastbull = __esm({
     });
     fastbull_default = defineSource(
       {
-        "fastbull": express,
         "fastbull-express": express,
         "fastbull-news": news2
       }
@@ -23433,7 +23292,6 @@ var init_bilibili = __esm({
       }));
     });
     bilibili_default = defineSource({
-      "bilibili": hotSearch,
       "bilibili-hot-search": hotSearch,
       "bilibili-hot-video": hotVideo,
       "bilibili-ranking": ranking
@@ -23702,7 +23560,6 @@ var init_chongbuluo = __esm({
     });
     latest = defineRSSSource("https://www.chongbuluo.com/forum.php?mod=rss&view=newthread");
     chongbuluo_default = defineSource({
-      "chongbuluo": hot3,
       "chongbuluo-hot": hot3,
       "chongbuluo-latest": latest
     });
@@ -24110,15 +23967,6 @@ var init_douban_hot_all = __esm({
   }
 });
 
-// mobile/src/sources/douban_movie.ts
-var douban_movie_default;
-var init_douban_movie = __esm({
-  "mobile/src/sources/douban_movie.ts"() {
-    init_define();
-    douban_movie_default = defineRSSSource("https://rsshub.dicomp.net/douban/list/movie_real_time_hotest", { hiddenDate: false });
-  }
-});
-
 // mobile/src/sources/douban_tv.ts
 var douban_tv_default;
 var init_douban_tv = __esm({
@@ -24431,7 +24279,6 @@ var init_getters = __esm({
     init_zhihu_daily();
     init_yicai_news();
     init_douban_hot_all();
-    init_douban_movie();
     init_douban_tv();
     init_douban_book();
     init_gelonghui_live();
@@ -24514,7 +24361,6 @@ var init_getters = __esm({
       "zhihu-daily": zhihu_daily_default,
       "yicai-news": yicai_news_default,
       "douban-hot-all": douban_hot_all_default,
-      "douban-movie": douban_movie_default,
       "douban-tv": douban_tv_default,
       "douban-book": douban_book_default,
       "gelonghui-live": gelonghui_live_default,

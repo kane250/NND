@@ -83,7 +83,6 @@ const hot = defineSource(async () => {
 })
 
 export default defineSource({
-  "wallstreetcn": live,
   "wallstreetcn-quick": live,
   "wallstreetcn-news": news,
   "wallstreetcn-hot": hot,

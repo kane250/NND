@@ -86,7 +86,6 @@ const renqi = defineSource(async () => {
 })
 
 export default defineSource({
-  "36kr": quick,
   "36kr-quick": quick,
   "36kr-renqi": renqi,
 })

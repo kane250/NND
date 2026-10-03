@@ -105,7 +105,6 @@ const telegraph = defineSource(async () => {
 })
 
 export default defineSource({
-  "cls": telegraph,
   "cls-telegraph": telegraph,
   "cls-depth": depth,
   "cls-hot": hot,

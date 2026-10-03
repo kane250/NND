@@ -36,6 +36,5 @@ const hotstock = defineSource(async () => {
 })
 
 export default defineSource({
-  "xueqiu": hotstock,
   "xueqiu-hotstock": hotstock,
 })

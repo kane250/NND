@@ -3,6 +3,7 @@
 const { app, BrowserWindow, WebContentsView, Menu, ipcMain, shell, dialog, protocol, Tray, nativeImage, Notification } = require("electron")
 const path = require("node:path")
 const fs = require("node:fs")
+const { mergeBookmarks, mergeHistory, mergeRssFeeds, applyImportedSettings } = require("./merge-data.cjs")
 
 // 自动更新（仅打包后生效，开发模式跳过）
 let autoUpdater = null
@@ -16,8 +17,8 @@ const VIEWER_PRELOAD = path.join(APP_DIR, "viewer-preload.cjs")
 const SETTINGS_HTML = path.join(APP_DIR, "settings.html")
 const SETTINGS_PRELOAD = path.join(APP_DIR, "settings-preload.cjs")
 
-const VERSION = "2.5.0"
-const BUILD_DATE = "2026-10-02"
+const VERSION = "2.6.0"
+const BUILD_DATE = "2026-10-03"
 const APP_NAME = "NND"
 const APP_FULL_NAME = "NewsNow Desktop"
 const PROJECT_HOME = "https://github.com/kane250/NND"
@@ -1236,6 +1237,119 @@ ipcMain.handle("settings:save", (_e, cfg) => {
   }
   return true
 })
+// 数据导出：书签 + 历史 + 设置（含自定义 RSS 源）→ JSON 备份文件
+ipcMain.handle("settings:export", async () => {
+  try {
+    const stamp = new Date()
+    const pad = (n) => String(n).padStart(2, "0")
+    const fname = `NND-backup-${stamp.getFullYear()}${pad(stamp.getMonth() + 1)}${pad(stamp.getDate())}-${pad(stamp.getHours())}${pad(stamp.getMinutes())}.json`
+    const dialogParent = settingsWindow && !settingsWindow.isDestroyed() ? settingsWindow : undefined
+    const result = await dialog.showSaveDialog(dialogParent, {
+      title: "导出 NND 数据",
+      defaultPath: path.join(app.getPath("downloads"), fname),
+      filters: [{ name: "NND 备份文件", extensions: ["json"] }],
+    })
+    if (result.canceled || !result.filePath) return { ok: false, canceled: true }
+    let bookmarks = []
+    let history = []
+    try { bookmarks = JSON.parse(fs.readFileSync(BOOKMARKS_PATH, "utf8")) } catch (_) {}
+    try { history = JSON.parse(fs.readFileSync(HISTORY_PATH, "utf8")) } catch (_) {}
+    const payload = {
+      app: APP_NAME,
+      version: VERSION,
+      exportedAt: new Date().toISOString(),
+      bookmarks,
+      history,
+      settings: {
+        theme: config.theme,
+        readerFontSize: config.readerFontSize,
+        readerLineHeight: config.readerLineHeight,
+        rssFeeds: Array.isArray(config.rssFeeds) ? config.rssFeeds : [],
+      },
+    }
+    fs.mkdirSync(path.dirname(result.filePath), { recursive: true })
+    fs.writeFileSync(result.filePath, JSON.stringify(payload, null, 2))
+    return {
+      ok: true,
+      path: result.filePath,
+      counts: {
+        bookmarks: bookmarks.length,
+        history: history.length,
+        rssFeeds: payload.settings.rssFeeds.length,
+      },
+    }
+  } catch (e) {
+    console.error("导出失败:", e)
+    return { ok: false, error: String(e && e.message ? e.message : e) }
+  }
+})
+
+// 数据导入：合并书签/历史/自定义 RSS 源，覆盖阅读设置
+ipcMain.handle("settings:import", async () => {
+  try {
+    const dialogParent = settingsWindow && !settingsWindow.isDestroyed() ? settingsWindow : undefined
+    const result = await dialog.showOpenDialog(dialogParent, {
+      title: "导入 NND 数据",
+      filters: [{ name: "NND 备份文件", extensions: ["json"] }],
+      properties: ["openFile"],
+    })
+    if (result.canceled || !result.filePaths.length) return { ok: false, canceled: true }
+    let payload
+    try {
+      payload = JSON.parse(fs.readFileSync(result.filePaths[0], "utf8"))
+    } catch (e) {
+      return { ok: false, error: "文件解析失败（不是有效的 JSON）" }
+    }
+    if (!payload || payload.app !== APP_NAME) {
+      return { ok: false, error: "不是 NND 备份文件（缺少 NND 标识）" }
+    }
+
+    // ---- 合并书签（按 url 去重，现有优先） ----
+    let bookmarks = []
+    try { bookmarks = JSON.parse(fs.readFileSync(BOOKMARKS_PATH, "utf8")) } catch (_) {}
+    const bm = mergeBookmarks(bookmarks, payload.bookmarks)
+    if (bm.added) fs.writeFileSync(BOOKMARKS_PATH, JSON.stringify(bm.merged, null, 2))
+
+    // ---- 合并历史（按 url 去重 + 按 readAt 降序 + 上限 200） ----
+    let history = []
+    try { history = JSON.parse(fs.readFileSync(HISTORY_PATH, "utf8")) } catch (_) {}
+    const ht = mergeHistory(history, payload.history)
+    if (ht.added) fs.writeFileSync(HISTORY_PATH, JSON.stringify(ht.merged, null, 2))
+
+    // ---- 合并自定义 RSS 源（按 url 去重） ----
+    const importedSettings = payload.settings || {}
+    const rs = mergeRssFeeds(config.rssFeeds, importedSettings.rssFeeds)
+    if (rs.added) config.rssFeeds = rs.merged
+
+    // ---- 覆盖阅读设置（备份中提供则应用） ----
+    const settingsApplied = applyImportedSettings(config, importedSettings)
+    saveConfig()
+
+    // 主题变更应用到主窗口（与 settings:save 一致）
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      try {
+        mainWindow.webContents.executeJavaScript(
+          `document.documentElement.classList.${config.theme === "light" ? "remove" : "add"}("dark");`,
+          true,
+        ).catch(() => {})
+      } catch (_) {}
+    }
+
+    return {
+      ok: true,
+      stats: {
+        bookmarksAdded: bm.added,
+        historyAdded: ht.added,
+        rssFeedsAdded: rs.added,
+        settingsApplied,
+      },
+    }
+  } catch (e) {
+    console.error("导入失败:", e)
+    return { ok: false, error: String(e && e.message ? e.message : e) }
+  }
+})
+
 ipcMain.handle("settings:close", () => {
   if (settingsWindow) settingsWindow.close()
 })

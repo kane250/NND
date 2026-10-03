@@ -147,7 +147,6 @@ function formatNumber(num: number): string {
 }
 
 export default defineSource({
-  "bilibili": hotSearch,
   "bilibili-hot-search": hotSearch,
   "bilibili-hot-video": hotVideo,
   "bilibili-ranking": ranking,

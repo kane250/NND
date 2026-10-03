@@ -134,6 +134,18 @@
     <div id="rssList" style="margin-top:10px;"></div>
   </div>
 
+  <div class="section-title">数据管理</div>
+
+  <div class="setting-item">
+    <div class="toggle-label">
+      <div class="name" id="ioStatus" style="font-size:12px;font-weight:400;opacity:.75;">导出或导入书签、历史记录与设置（含自定义 RSS 源）</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button id="btnExport" style="flex:1;">导出数据…</button>
+      <button id="btnImport" style="flex:1;">导入数据…</button>
+    </div>
+  </div>
+
   <div class="actions">
     <button id="cancel">取消</button>
     <button id="save" class="primary">保存</button>
@@ -141,7 +153,7 @@
 
 <script>
   const $ = (id) => document.getElementById(id)
-  ;(async () => {
+  async function initForm() {
     const cfg = await window.settings.load()
     $("autoRefresh").checked = cfg.autoRefresh
     $("viewerInApp").checked = cfg.viewerInApp
@@ -160,16 +172,17 @@
     $("readerFontSizeVal").textContent = fontSize + " px"
     $("readerLineHeight").value = lineHeight
     $("readerLineHeightVal").textContent = lineHeight
-    // 实时更新数值显示
-    $("readerFontSize").addEventListener("input", (e) => {
-      $("readerFontSizeVal").textContent = e.target.value + " px"
-    })
-    $("readerLineHeight").addEventListener("input", (e) => {
-      $("readerLineHeightVal").textContent = Number(e.target.value).toFixed(1)
-    })
     // 自定义 RSS 源
     await loadRssFeeds()
-  })()
+  }
+  initForm()
+  // 实时更新数值显示
+  $("readerFontSize").addEventListener("input", (e) => {
+    $("readerFontSizeVal").textContent = e.target.value + " px"
+  })
+  $("readerLineHeight").addEventListener("input", (e) => {
+    $("readerLineHeightVal").textContent = Number(e.target.value).toFixed(1)
+  })
 
   async function loadRssFeeds() {
     try {
@@ -202,6 +215,41 @@
     $("rssName").value = ""
     $("rssUrl").value = ""
     loadRssFeeds()
+  })
+
+  // 数据导出
+  $("btnExport").addEventListener("click", async () => {
+    const status = $("ioStatus")
+    status.textContent = "正在导出…"
+    const r = await window.settings.exportData()
+    if (r.ok) {
+      status.textContent = "✓ 已导出 " + r.counts.bookmarks + " 条书签、" + r.counts.history + " 条历史、" + r.counts.rssFeeds + " 个自定义源"
+    } else if (r.canceled) {
+      status.textContent = "已取消导出"
+    } else {
+      status.textContent = "✗ 导出失败：" + (r.error || "未知错误")
+    }
+  })
+
+  // 数据导入
+  $("btnImport").addEventListener("click", async () => {
+    const status = $("ioStatus")
+    status.textContent = "正在导入…"
+    const r = await window.settings.importData()
+    if (r.ok) {
+      const s = r.stats
+      const parts = []
+      if (s.bookmarksAdded) parts.push("书签 +" + s.bookmarksAdded)
+      if (s.historyAdded) parts.push("历史 +" + s.historyAdded)
+      if (s.rssFeedsAdded) parts.push("RSS 源 +" + s.rssFeedsAdded)
+      if (s.settingsApplied) parts.push("设置已应用")
+      status.textContent = "✓ 导入完成" + (parts.length ? "（" + parts.join("，") + "）" : "（无新增内容）")
+      await initForm() // 刷新设置项与 RSS 列表显示
+    } else if (r.canceled) {
+      status.textContent = "已取消导入"
+    } else {
+      status.textContent = "✗ 导入失败：" + (r.error || "未知错误")
+    }
   })
 
   $("save").addEventListener("click", async () => {

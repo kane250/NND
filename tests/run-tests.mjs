@@ -3,6 +3,7 @@
 import { readFileSync, writeFileSync, existsSync, unlinkSync, mkdirSync, readdirSync } from "node:fs"
 import { join, dirname } from "node:path"
 import { fileURLToPath } from "node:url"
+import { createRequire } from "node:module"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, "..")
@@ -112,6 +113,108 @@ await test("bundle 含 NND logo", () => {
   if (!fs2.length) return
   const b = readFileSync(join(bd,fs2[0]),"utf8")
   if (!b.includes('children:"NND"')) throw new Error("未找到 NND logo")
+})
+
+// ========== 6. 内容源规整（v2.6.0） ==========
+console.log("\n=== 6. 内容源规整 ===")
+const sourcesData = JSON.parse(readFileSync(join(ROOT, "mobile", "src", "sources-data.json"), "utf8"))
+await test("源总数为 85（去除冗余后）", () => {
+  if (Object.keys(sourcesData).length !== 85) throw new Error(`实际 ${Object.keys(sourcesData).length} 个`)
+})
+await test("无纯 redirect 冗余条目", () => {
+  // redirect 条目与其目标 name/title 必须不同（否则就是重复项）
+  for (const [id, m] of Object.entries(sourcesData)) {
+    if (m.redirect) {
+      const t = sourcesData[m.redirect]
+      if (t && m.name === t.name && (m.title || "") === (t.title || "")) {
+        throw new Error(`${id} 与 ${m.redirect} 元数据完全一致，属冗余条目`)
+      }
+    }
+  }
+})
+await test("分类修正生效（freebuf/nowcoder/steam 均为 tech）", () => {
+  for (const id of ["freebuf", "nowcoder", "steam"]) {
+    if (sourcesData[id].column !== "tech") throw new Error(`${id} 应为 tech，实际 ${sourcesData[id].column}`)
+  }
+})
+await test("同名源组内 title 唯一", () => {
+  const groups = {}
+  for (const [id, m] of Object.entries(sourcesData)) {
+    groups[m.name] = groups[m.name] || []
+    groups[m.name].push([id, m.title || ""])
+  }
+  for (const [name, items] of Object.entries(groups)) {
+    const titles = items.map(([, t]) => t)
+    if (new Set(titles).size !== titles.length) throw new Error(`组「${name}」存在重复 title`)
+  }
+})
+await test("数据层与 sources-data.json 一致（85 源全注册）", async () => {
+  const api = await import(join(ROOT, "data-layer.mjs"))
+  const ids = Object.keys(sourcesData)
+  const missing = ids.filter((id) => !(id in api.sources))
+  const extra = Object.keys(api.sources).filter((id) => !(id in sourcesData))
+  if (missing.length) throw new Error(`数据层缺失: ${missing.join(",")}`)
+  if (extra.length) throw new Error(`数据层多余: ${extra.join(",")}`)
+})
+await test("前端 bundle 源对象与数据层一致", () => {
+  const bd = join(ROOT, "web", "assets")
+  const fs2 = readdirSync(bd).filter((f) => /^index-[A-Za-z0-9-]+\.js$/.test(f))
+  if (!fs2.length) return
+  const b = readFileSync(join(bd, fs2[0]), "utf8")
+  for (const id of Object.keys(sourcesData)) {
+    if (!b.includes(`"${id}":`)) throw new Error(`bundle 缺少源 ${id}`)
+  }
+  for (const ghost of ["pcbeta-windows11", "github-trending-today", "qqvideo-tv-hotsearch", "douban-movie", "v2ex\"", "36kr\"", "cls\""]) {
+    if (b.includes(ghost)) throw new Error(`bundle 残留废弃源: ${ghost}`)
+  }
+})
+
+// ========== 7. 导入导出合并逻辑（v2.6.0） ==========
+console.log("\n=== 7. 导入导出合并逻辑 ===")
+const merge = createRequire(import.meta.url)(join(ROOT, "merge-data.cjs"))
+await test("书签合并：现有优先、导入去重", () => {
+  const cur = [{ url: "a", title: "现有" }, { url: "b", title: "现有B" }]
+  const inc = [{ url: "a", title: "重复应忽略" }, { url: "c", title: "新增" }, { url: "", title: "无效" }, null]
+  const r = merge.mergeBookmarks(cur, inc)
+  if (r.merged.length !== 3) throw new Error(`应为 3，实际 ${r.merged.length}`)
+  if (r.merged.find((x) => x.url === "a").title !== "现有") throw new Error("现有数据被覆盖")
+  if (r.added !== 1) throw new Error(`新增数应为 1`)
+})
+await test("历史合并：按 readAt 排序且上限 200", () => {
+  const cur = Array.from({ length: 150 }, (_, i) => ({ url: "u" + i, readAt: 1000 - i }))
+  const inc = Array.from({ length: 100 }, (_, i) => ({ url: "v" + i, readAt: 5000 + i }))
+  const r = merge.mergeHistory(cur, inc)
+  if (r.merged.length !== 200) throw new Error(`应截断为 200，实际 ${r.merged.length}`)
+  if (r.merged[0].url !== "v99") throw new Error("应按 readAt 降序排列")
+  if (r.added !== 100) throw new Error("新增数应为 100")
+})
+await test("历史合并：重复 URL 忽略", () => {
+  const r = merge.mergeHistory([{ url: "x", readAt: 9 }], [{ url: "x", readAt: 99 }])
+  if (r.added !== 0) throw new Error("重复 url 不应计入新增")
+  if (r.merged[0].readAt !== 9) throw new Error("现有历史不应被覆盖")
+})
+await test("RSS 合并：按 url 去重并补 id/name", () => {
+  const r = merge.mergeRssFeeds([{ id: "r1", name: "A", url: "https://a.com/feed" }], [
+    { id: "x", name: "B", url: "https://a.com/feed" }, // 重复
+    { name: "C", url: "https://c.com/feed" },           // 无 id 应自动生成
+    { url: "https://d.com/feed" },                       // 无 name 应回退为 url
+  ])
+  if (r.added !== 2) throw new Error(`新增应为 2，实际 ${r.added}`)
+  const c = r.merged.find((f) => f.url === "https://c.com/feed")
+  if (!c || !c.id || !c.id.startsWith("rss-")) throw new Error("id 应自动生成")
+  const d = r.merged.find((f) => f.url === "https://d.com/feed")
+  if (d.name !== d.url) throw new Error("缺失 name 应回退为 url")
+})
+await test("设置应用：合法值覆盖 + 范围钳制 + 非法值忽略", () => {
+  const cfg = { theme: "dark", readerFontSize: 16, readerLineHeight: 1.8 }
+  const applied1 = merge.applyImportedSettings(cfg, { theme: "light", readerFontSize: 999, readerLineHeight: 0.1 })
+  if (!applied1 || cfg.theme !== "light") throw new Error("合法 theme 未应用")
+  if (cfg.readerFontSize !== 22) throw new Error(`字号应钳制到 22，实际 ${cfg.readerFontSize}`)
+  if (cfg.readerLineHeight !== 1.4) throw new Error(`行距应钳制到 1.4，实际 ${cfg.readerLineHeight}`)
+  const before = { ...cfg }
+  const applied2 = merge.applyImportedSettings(cfg, { theme: "blue", readerFontSize: "abc" })
+  if (applied2 !== false) throw new Error("非法值不应应用")
+  if (JSON.stringify(cfg) !== JSON.stringify(before)) throw new Error("非法值不应改变配置")
 })
 
 // ========== 汇总 ==========

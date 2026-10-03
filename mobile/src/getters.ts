@@ -66,7 +66,6 @@ import ft from "./sources/ft"
 import zhihuDaily from "./sources/zhihu_daily"
 import yicaiNews from "./sources/yicai_news"
 import doubanHotAll from "./sources/douban_hot_all"
-import doubanMovie from "./sources/douban_movie"
 import doubanTv from "./sources/douban_tv"
 import doubanBook from "./sources/douban_book"
 import gelonghuiLive from "./sources/gelonghui_live"
@@ -151,7 +150,6 @@ const sourceModules: Record<string, SourceGetter | Record<string, SourceGetter>>
   "zhihu-daily": zhihuDaily,
   "yicai-news": yicaiNews,
   "douban-hot-all": doubanHotAll,
-  "douban-movie": doubanMovie,
   "douban-tv": doubanTv,
   "douban-book": doubanBook,
   "gelonghui-live": gelonghuiLive,

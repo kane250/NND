@@ -1,13 +1,4 @@
 {
-  "v2ex": {
-    "redirect": "v2ex-share",
-    "name": "V2EX",
-    "column": "tech",
-    "home": "https://v2ex.com/",
-    "color": "slate",
-    "interval": 600000,
-    "title": "最新分享"
-  },
   "v2ex-share": {
     "name": "V2EX",
     "column": "tech",
@@ -22,7 +13,8 @@
     "column": "china",
     "home": "https://www.zhihu.com",
     "color": "blue",
-    "interval": 600000
+    "interval": 600000,
+    "title": "热榜"
   },
   "weibo": {
     "title": "实时热搜",
@@ -51,31 +43,12 @@
     "color": "green",
     "interval": 600000
   },
-  "mktnews": {
-    "redirect": "mktnews-flash",
-    "name": "MKTNews",
-    "column": "finance",
-    "home": "https://mktnews.net",
-    "color": "indigo",
-    "interval": 120000,
-    "title": "快讯"
-  },
   "mktnews-flash": {
     "name": "MKTNews",
     "column": "finance",
     "home": "https://mktnews.net",
     "color": "indigo",
     "interval": 120000,
-    "title": "快讯"
-  },
-  "wallstreetcn": {
-    "redirect": "wallstreetcn-quick",
-    "name": "华尔街见闻",
-    "type": "realtime",
-    "column": "finance",
-    "home": "https://wallstreetcn.com/",
-    "color": "blue",
-    "interval": 300000,
     "title": "快讯"
   },
   "wallstreetcn-quick": {
@@ -104,17 +77,6 @@
     "interval": 1800000,
     "title": "最热"
   },
-  "36kr": {
-    "redirect": "36kr-quick",
-    "name": "36氪",
-    "type": "realtime",
-    "disable": "cf",
-    "column": "tech",
-    "home": "https://36kr.com",
-    "color": "blue",
-    "interval": 600000,
-    "title": "快讯"
-  },
   "36kr-quick": {
     "name": "36氪",
     "type": "realtime",
@@ -141,7 +103,8 @@
     "column": "china",
     "home": "https://www.douyin.com",
     "color": "gray",
-    "interval": 600000
+    "interval": 600000,
+    "title": "热点"
   },
   "hupu": {
     "title": "主干道热帖",
@@ -184,7 +147,8 @@
     "column": "china",
     "home": "https://www.toutiao.com",
     "color": "red",
-    "interval": 600000
+    "interval": 600000,
+    "title": "热榜"
   },
   "ithome": {
     "name": "IT之家",
@@ -217,16 +181,6 @@
     "color": "red",
     "interval": 1800000
   },
-  "cls": {
-    "redirect": "cls-telegraph",
-    "name": "财联社",
-    "type": "realtime",
-    "column": "finance",
-    "home": "https://www.cls.cn",
-    "color": "red",
-    "interval": 300000,
-    "title": "电报"
-  },
   "cls-telegraph": {
     "name": "财联社",
     "type": "realtime",
@@ -253,16 +207,6 @@
     "interval": 600000,
     "title": "热门"
   },
-  "xueqiu": {
-    "redirect": "xueqiu-hotstock",
-    "name": "雪球",
-    "type": "hottest",
-    "column": "finance",
-    "home": "https://xueqiu.com",
-    "color": "blue",
-    "interval": 120000,
-    "title": "热门股票"
-  },
   "xueqiu-hotstock": {
     "name": "雪球",
     "type": "hottest",
@@ -280,16 +224,6 @@
     "home": "https://www.gelonghui.com",
     "color": "blue",
     "interval": 120000
-  },
-  "fastbull": {
-    "redirect": "fastbull-express",
-    "name": "法布财经",
-    "type": "realtime",
-    "column": "finance",
-    "home": "https://www.fastbull.cn",
-    "color": "emerald",
-    "interval": 120000,
-    "title": "快讯"
   },
   "fastbull-express": {
     "name": "法布财经",
@@ -331,16 +265,6 @@
     "color": "red",
     "interval": 600000
   },
-  "bilibili": {
-    "redirect": "bilibili-hot-search",
-    "name": "哔哩哔哩",
-    "type": "hottest",
-    "column": "china",
-    "home": "https://www.bilibili.com",
-    "color": "blue",
-    "interval": 600000,
-    "title": "热搜"
-  },
   "bilibili-hot-search": {
     "name": "哔哩哔哩",
     "type": "hottest",
@@ -377,7 +301,8 @@
     "column": "china",
     "home": "https://www.kuaishou.com",
     "color": "orange",
-    "interval": 600000
+    "interval": 600000,
+    "title": "热点"
   },
   "kaopu": {
     "name": "靠谱新闻",
@@ -406,7 +331,7 @@
   "nowcoder": {
     "name": "牛客",
     "type": "hottest",
-    "column": "china",
+    "column": "tech",
     "home": "https://www.nowcoder.com",
     "color": "blue",
     "interval": 600000
@@ -417,7 +342,8 @@
     "column": "tech",
     "home": "https://sspai.com",
     "color": "red",
-    "interval": 600000
+    "interval": 600000,
+    "title": "热门文章"
   },
   "juejin": {
     "name": "稀土掘金",
@@ -435,15 +361,6 @@
     "home": "https://www.ifeng.com",
     "color": "red",
     "interval": 600000
-  },
-  "chongbuluo": {
-    "redirect": "chongbuluo-latest",
-    "name": "虫部落",
-    "column": "china",
-    "home": "https://www.chongbuluo.com/forum.php?mod=guide&view=newthread",
-    "color": "green",
-    "interval": 1800000,
-    "title": "最新"
   },
   "chongbuluo-latest": {
     "name": "虫部落",
@@ -475,20 +392,10 @@
     "title": "在线人数",
     "name": "Steam",
     "type": "hottest",
-    "column": "world",
+    "column": "tech",
     "home": "https://store.steampowered.com",
     "color": "blue",
     "interval": 600000
-  },
-  "tencent": {
-    "redirect": "tencent-hot",
-    "name": "腾讯新闻",
-    "type": "hottest",
-    "column": "china",
-    "home": "https://news.qq.com/tag/aEWqxLtdgmQ=",
-    "color": "blue",
-    "interval": 1800000,
-    "title": "综合早报"
   },
   "tencent-hot": {
     "name": "腾讯新闻",
@@ -503,20 +410,10 @@
     "title": "网络安全",
     "name": "Freebuf",
     "type": "hottest",
-    "column": "china",
+    "column": "tech",
     "home": "https://www.freebuf.com/",
     "color": "green",
     "interval": 600000
-  },
-  "iqiyi": {
-    "redirect": "iqiyi-hot-ranklist",
-    "name": "爱奇艺",
-    "type": "hottest",
-    "column": "china",
-    "home": "https://www.iqiyi.com",
-    "color": "green",
-    "interval": 1800000,
-    "title": "热播榜"
   },
   "iqiyi-hot-ranklist": {
     "name": "爱奇艺",
@@ -549,7 +446,8 @@
     "column": "china",
     "color": "red",
     "interval": 600000,
-    "home": "https://news.cctv.com"
+    "home": "https://news.cctv.com",
+    "title": "新闻"
   },
   "cnbeta": {
     "name": "cnBeta",
@@ -614,7 +512,6 @@
   },
   "zhihu-daily": {
     "name": "知乎日报",
-    "title": "知乎日报",
     "type": "hottest",
     "column": "china",
     "home": "https://rsshub.dicomp.net",
@@ -624,7 +521,6 @@
   },
   "yicai-news": {
     "name": "第一财经",
-    "title": "第一财经",
     "type": "hottest",
     "column": "finance",
     "home": "https://rsshub.dicomp.net",
@@ -633,8 +529,8 @@
     "_rss": "https://rsshub.dicomp.net/yicai/news"
   },
   "douban-hot-all": {
-    "name": "豆瓣热门书影音",
-    "title": "豆瓣热门书影音",
+    "name": "豆瓣",
+    "title": "热门书影音",
     "type": "hottest",
     "column": "china",
     "home": "https://rsshub.dicomp.net",
@@ -642,19 +538,9 @@
     "interval": 600000,
     "_rss": "https://rsshub.dicomp.net/douban/list/subject_real_time_hotest"
   },
-  "douban-movie": {
-    "name": "豆瓣热门电影",
-    "title": "豆瓣热门电影",
-    "type": "hottest",
-    "column": "china",
-    "home": "https://rsshub.dicomp.net",
-    "color": "red",
-    "interval": 600000,
-    "_rss": "https://rsshub.dicomp.net/douban/list/movie_real_time_hotest"
-  },
   "douban-tv": {
-    "name": "豆瓣热门电视",
-    "title": "豆瓣热门电视",
+    "name": "豆瓣",
+    "title": "热门剧集",
     "type": "hottest",
     "column": "china",
     "home": "https://rsshub.dicomp.net",
@@ -663,8 +549,8 @@
     "_rss": "https://rsshub.dicomp.net/douban/list/tv_real_time_hotest"
   },
   "douban-book": {
-    "name": "豆瓣热门书籍",
-    "title": "豆瓣热门书籍",
+    "name": "豆瓣",
+    "title": "热门图书",
     "type": "hottest",
     "column": "china",
     "home": "https://rsshub.dicomp.net",
@@ -673,8 +559,8 @@
     "_rss": "https://rsshub.dicomp.net/douban/book/rank/fiction"
   },
   "gelonghui-live": {
-    "name": "格隆汇快讯",
-    "title": "格隆汇快讯",
+    "name": "格隆汇",
+    "title": "快讯",
     "type": "hottest",
     "column": "finance",
     "home": "https://rsshub.dicomp.net",
@@ -684,7 +570,6 @@
   },
   "blockbeats": {
     "name": "律动快讯",
-    "title": "律动快讯",
     "type": "hottest",
     "column": "finance",
     "home": "https://rsshub.dicomp.net",
@@ -694,7 +579,6 @@
   },
   "banyuetan": {
     "name": "半月谈",
-    "title": "半月谈",
     "type": "hottest",
     "column": "china",
     "home": "https://rsshub.dicomp.net",
@@ -704,7 +588,6 @@
   },
   "weread-newbook": {
     "name": "微信读书新书榜",
-    "title": "微信读书新书榜",
     "type": "hottest",
     "column": "china",
     "home": "https://rsshub.dicomp.net",
@@ -714,7 +597,6 @@
   },
   "weread-top": {
     "name": "微信读书Top200",
-    "title": "微信读书Top200",
     "type": "hottest",
     "column": "china",
     "home": "https://rsshub.dicomp.net",
@@ -724,7 +606,6 @@
   },
   "people-politics": {
     "name": "人民日报时政",
-    "title": "人民日报时政",
     "type": "hottest",
     "column": "china",
     "home": "http://www.people.com.cn",
@@ -734,7 +615,6 @@
   },
   "people-society": {
     "name": "人民日报社会",
-    "title": "人民日报社会",
     "type": "hottest",
     "column": "china",
     "home": "http://www.people.com.cn",
@@ -744,7 +624,6 @@
   },
   "people-world": {
     "name": "人民日报国际",
-    "title": "人民日报国际",
     "type": "hottest",
     "column": "world",
     "home": "http://www.people.com.cn",
@@ -754,7 +633,6 @@
   },
   "people-military": {
     "name": "人民日报军事",
-    "title": "人民日报军事",
     "type": "hottest",
     "column": "china",
     "home": "http://www.people.com.cn",
@@ -764,7 +642,6 @@
   },
   "dgtle": {
     "name": "数字尾巴",
-    "title": "数字尾巴",
     "type": "hottest",
     "column": "tech",
     "home": "https://www.dgtle.com",
@@ -774,7 +651,6 @@
   },
   "ifanr": {
     "name": "爱范儿",
-    "title": "爱范儿",
     "type": "hottest",
     "column": "tech",
     "home": "https://www.ifanr.com",
@@ -784,7 +660,6 @@
   },
   "feng": {
     "name": "威锋网",
-    "title": "威锋网",
     "type": "hottest",
     "column": "tech",
     "home": "https://www.feng.com",
@@ -794,7 +669,6 @@
   },
   "chinanews-scroll": {
     "name": "中新网即时",
-    "title": "中新网即时",
     "type": "hottest",
     "column": "china",
     "home": "https://www.chinanews.com.cn",
@@ -804,7 +678,6 @@
   },
   "jiemian": {
     "name": "界面新闻",
-    "title": "界面新闻",
     "type": "hottest",
     "column": "china",
     "home": "https://a.jiemian.com",
@@ -814,7 +687,6 @@
   },
   "iplaysoft": {
     "name": "异次元软件",
-    "title": "异次元软件",
     "type": "hottest",
     "column": "tech",
     "home": "https://feed.iplaysoft.com",
@@ -824,7 +696,6 @@
   },
   "geekpark": {
     "name": "极客公园",
-    "title": "极客公园",
     "type": "hottest",
     "column": "tech",
     "home": "https://www.geekpark.net",
@@ -834,7 +705,6 @@
   },
   "tmtpost": {
     "name": "钛媒体",
-    "title": "钛媒体",
     "type": "hottest",
     "column": "tech",
     "home": "https://www.tmtpost.com",
@@ -844,7 +714,6 @@
   },
   "digitaling": {
     "name": "数英网",
-    "title": "数英网",
     "type": "hottest",
     "column": "tech",
     "home": "https://www.digitaling.com",
@@ -854,7 +723,6 @@
   },
   "woshipm": {
     "name": "产品经理",
-    "title": "产品经理",
     "type": "hottest",
     "column": "tech",
     "home": "http://www.woshipm.com",
@@ -864,7 +732,6 @@
   },
   "gov-policy": {
     "name": "国务院政策",
-    "title": "国务院政策",
     "type": "hottest",
     "column": "china",
     "home": "http://www.gov.cn",
@@ -874,7 +741,6 @@
   },
   "gov-news": {
     "name": "国务院新闻",
-    "title": "国务院新闻",
     "type": "hottest",
     "column": "china",
     "home": "http://www.gov.cn",
