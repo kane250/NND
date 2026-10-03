@@ -59,7 +59,22 @@ for file in "$TEMP_DIR"/*; do
   fi
 done
 
-# 3. 创建 Gitee Release
+# 3. 清理旧版 Release 附件（仓库附件配额 1GB，只保留最新版直传附件）
+echo "→ 清理旧版 Release 附件（只保留最新版直传，释放配额）..."
+OLD_RELEASES=$(curl -s "https://gitee.com/api/v5/repos/$GITEE_OWNER/$GITEE_REPO/releases" -H "Authorization: token $GITEE_TOKEN" | node -e "process.stdin.resume();let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{const rs=JSON.parse(d);console.log(rs.filter(r=>r.tag_name!=='$TAG').map(r=>r.id).join(' '))}catch(e){console.log('')}})" 2>/dev/null)
+CLEANED=0
+for rid in $OLD_RELEASES; do
+  ATTACH_IDS=$(curl -s "https://gitee.com/api/v5/repos/$GITEE_OWNER/$GITEE_REPO/releases/$rid/attach_files" -H "Authorization: token $GITEE_TOKEN" | node -e "process.stdin.resume();let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{console.log(JSON.parse(d).map(f=>f.id).join(' '))}catch(e){console.log('')}})" 2>/dev/null)
+  for fid in $ATTACH_IDS; do
+    CODE=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE \
+      "https://gitee.com/api/v5/repos/$GITEE_OWNER/$GITEE_REPO/releases/$rid/attach_files/$fid" \
+      -H "Authorization: token $GITEE_TOKEN" --max-time 30)
+    if [ "$CODE" = "200" ] || [ "$CODE" = "204" ]; then CLEANED=$((CLEANED+1)); fi
+  done
+done
+if [ "$CLEANED" -gt 0 ]; then echo "  ✓ 已清理旧版附件 $CLEANED 个"; else echo "  ✓ 旧版无附件或已清理"; fi
+
+# 4. 创建 Gitee Release
 echo "→ 创建 Gitee Release $TAG..."
 BODY="## NND ${TAG}\n\n### 下载安装\n\n| 平台 | 文件 | 大小 | 下载 |\n|---|---|---|---|\n${DOWNLOAD_TABLE}\n> 💡 超过 100MB 的文件因 Gitee 限制无法直接上传，请通过 GitHub 链接下载。\n\n### 镜像\n\n- GitHub: https://github.com/${GH_OWNER}/${GH_REPO}/releases/tag/${TAG}\n- Gitee: https://gitee.com/${GITEE_OWNER}/${GITEE_REPO}/releases/${TAG}"
 
@@ -83,7 +98,7 @@ if [ -z "$RELEASE_ID" ]; then
 fi
 echo "  ✓ Gitee Release ID: $RELEASE_ID"
 
-# 4. 上传 <100MB 的产物
+# 5. 上传 <100MB 的产物
 if [ -n "$UPLOAD_FILES" ]; then
   echo "→ 上传产物（<100MB）..."
   for file in $UPLOAD_FILES; do
