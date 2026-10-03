@@ -48,6 +48,11 @@ else
   echo "[提示] mobile 依赖安装失败，数据层未重建（保留现有 data-layer.mjs）"
 fi
 
+echo "→ 同步 README 版本号..."
+README_VERSION=$(node -e "console.log(require('./package.json').version)")
+sed -i "s/当前版本：\*\*v[0-9.]*\*\*/当前版本：**v${README_VERSION}**/" "$DIR/README.md" 2>/dev/null || true
+echo "  ✓ README 版本号同步为 v${README_VERSION}"
+
 echo ""
 echo "✓ 构建完成！运行 ./start.sh (Linux/macOS) 或 start.bat (Windows) 启动。"
 echo "  （v2.0 无需 setup 安装步骤，无原生模块依赖）"
