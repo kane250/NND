@@ -172,6 +172,7 @@ await test("前端 bundle 源对象与数据层一致", () => {
 // ========== 7. 导入导出合并逻辑（v2.6.0） ==========
 console.log("\n=== 7. 导入导出合并逻辑 ===")
 const merge = createRequire(import.meta.url)(join(ROOT, "merge-data.cjs"))
+const opml = createRequire(import.meta.url)(join(ROOT, "opml.cjs"))
 await test("书签合并：现有优先、导入去重", () => {
   const cur = [{ url: "a", title: "现有" }, { url: "b", title: "现有B" }]
   const inc = [{ url: "a", title: "重复应忽略" }, { url: "c", title: "新增" }, { url: "", title: "无效" }, null]
@@ -215,6 +216,60 @@ await test("设置应用：合法值覆盖 + 范围钳制 + 非法值忽略", ()
   const applied2 = merge.applyImportedSettings(cfg, { theme: "blue", readerFontSize: "abc" })
   if (applied2 !== false) throw new Error("非法值不应应用")
   if (JSON.stringify(cfg) !== JSON.stringify(before)) throw new Error("非法值不应改变配置")
+})
+
+// ========== 8. OPML 订阅导出（v2.6.1） ==========
+console.log("\n=== 8. OPML 订阅导出 ===")
+await test("OPML 基本结构与分类分组", () => {
+  const meta = {
+    "36kr-hot": { name: "36氪", title: "热榜", column: "tech", home: "https://36kr.com", _rss: "https://rsshub.rssforever.com/36kr/hot-list" },
+    zhihu: { name: "知乎", title: "热榜", column: "china", home: "https://www.zhihu.com" },
+  }
+  const xml = opml.generateOpml(meta, [], { title: "测试订阅" })
+  if (!xml.startsWith('<?xml version="1.0" encoding="UTF-8"?>')) throw new Error("缺少 XML 声明")
+  if (!xml.includes('<opml version="2.0">')) throw new Error("缺少 opml 根元素")
+  if (!xml.includes('<outline text="科技">')) throw new Error("缺少科技分类分组")
+  if (!xml.includes('<outline text="国内">')) throw new Error("缺少国内分类分组")
+  if (!xml.includes('<title>测试订阅</title>')) throw new Error("缺少标题")
+})
+await test("RSS 源生成 type=rss + xmlUrl，API 源仅 htmlUrl", () => {
+  const meta = {
+    "36kr-hot": { name: "36氪", title: "热榜", column: "tech", home: "https://36kr.com", _rss: "https://x/36kr" },
+    zhihu: { name: "知乎", column: "china", home: "https://www.zhihu.com" },
+  }
+  const xml = opml.generateOpml(meta, [])
+  if (!xml.includes('type="rss" xmlUrl="https://x/36kr"')) throw new Error("RSS 源应含 xmlUrl")
+  const zhihuLine = xml.split("\n").find(l => l.includes("text=\"知乎 热榜\"") || (l.includes("知乎") && l.includes("outline")))
+  if (!zhihuLine) throw new Error("API 源应导出为普通 outline")
+  if (zhihuLine.includes("xmlUrl")) throw new Error("API 源不应有 xmlUrl")
+  if (!zhihuLine.includes('htmlUrl="https://www.zhihu.com"')) throw new Error("API 源应含 htmlUrl")
+})
+await test("自定义 RSS 源分组与 XML 转义", () => {
+  const xml = opml.generateOpml({}, [{ id: "r1", name: "A&B<C>", url: "https://ex.com/feed?x=1&y=2" }])
+  if (!xml.includes('<outline text="自定义">')) throw new Error("缺少自定义分组")
+  if (!xml.includes("A&amp;B&lt;C&gt;")) throw new Error("XML 转义失败")
+  if (!xml.includes("https://ex.com/feed?x=1&amp;y=2")) throw new Error("URL 转义失败")
+})
+await test("数据层 39 个源含 RSS 地址（OPML 可订阅）", async () => {
+  const api = await import(join(ROOT, "data-layer.mjs"))
+  const withRss = Object.values(api.sources).filter(m => m._rss).length
+  if (withRss !== 39) throw new Error(`含 _rss 应为 39，实际 ${withRss}`)
+  const xml = opml.generateOpml(api.sources, [{ id: "x", name: "自定义测试", url: "https://x/feed" }])
+  const xmlUrlCount = (xml.match(/xmlUrl=/g) || []).length
+  if (xmlUrlCount !== 40) throw new Error(`xmlUrl 应为 39 内置 + 1 自定义 = 40，实际 ${xmlUrlCount}`)
+  const outlineCount = (xml.match(/<outline /g) || []).length
+  // 85 内置 + 39+1 个带 xmlUrl 的已计入 + 5 分组 = 85 + 5 + 1(自定义组内1条) = 91
+  if (outlineCount < 85 + 5) throw new Error(`outline 总数应至少 90，实际 ${outlineCount}`)
+})
+await test("OPML 全量导出包含全部 85 个内置源", async () => {
+  const api = await import(join(ROOT, "data-layer.mjs"))
+  const xml = opml.generateOpml(api.sources, [])
+  const missing = Object.keys(api.sources).filter(id => {
+    const meta = api.sources[id]
+    const label = (meta.name || id) + (meta.title ? " " + meta.title : "")
+    return !xml.includes(`text="${label.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")}"`)
+  })
+  if (missing.length) throw new Error(`OPML 缺少源: ${missing.slice(0, 5).join(",")}`)
 })
 
 // ========== 汇总 ==========

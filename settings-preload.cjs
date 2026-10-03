@@ -7,5 +7,6 @@ contextBridge.exposeInMainWorld("settings", {
   save: (cfg) => ipcRenderer.invoke("settings:save", cfg),
   close: () => ipcRenderer.invoke("settings:close"),
   exportData: () => ipcRenderer.invoke("settings:export"),
+  exportOpml: () => ipcRenderer.invoke("settings:export-opml"),
   importData: () => ipcRenderer.invoke("settings:import"),
 })

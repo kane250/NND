@@ -4,7 +4,7 @@
 
 由 [TeleAgent](https://github.com/kane250) 打包发布，致敬原项目 [NewsNow](https://github.com/newsnext/newsnow)。
 
-当前版本：**v2.6.0**
+当前版本：**v2.6.1**
 
 ---
 
@@ -32,6 +32,7 @@
 - **阅读优化**：字体大小（12-22px）和行距（1.4-2.4）可调，文章正文最大宽度 780px 居中
 - **自定义 RSS 源**：设置中添加任意 RSS/Atom Feed URL，不限于内置 85 个源
 - **数据导入导出**：一键导出/导入书签、阅读历史、自定义 RSS 源与阅读设置（JSON 备份文件），方便备份与迁移
+- **订阅列表导出（OPML）**：全部 85 个内置源（按分类分组）+ 自定义 RSS 源导出为标准 OPML 2.0 文件，可导入 Tiny Tiny RSS / Feedly / Inoreader 等阅读器；39 个 RSS/RSSHub 源携带可直接订阅的 xmlUrl，其余 API 热榜源保留名称/分类/站点链接
 
 ### 书签 / 历史 / 搜索
 
@@ -138,6 +139,7 @@ npm install                # 安装 Electron
 NND/
 ├── main.cjs                # Electron 主进程：app:// 协议 + 数据层 + 阅读器 + 托盘 + 菜单
 ├── merge-data.cjs         # 导入合并逻辑（书签/历史/RSS 去重合并，与测试共用）
+├── opml.cjs               # OPML 2.0 订阅列表生成（与测试共用）
 ├── data-layer.mjs          # 数据层 bundle（85 源抓取+缓存，构建产物）
 ├── viewer.html             # 内置阅读器工具栏 UI
 ├── viewer-preload.cjs      # 阅读器 IPC 桥
@@ -263,6 +265,7 @@ npx cap sync ios && npx cap open ios
 
 | 版本 | 主要变更 |
 | --- | --- |
+| v2.6.1 | 订阅列表导出（OPML 2.0）：全部内置源分类分组导出 + 自定义 RSS 源，39 个 RSS 源携带可直接订阅的 xmlUrl；测试扩至 38 项 |
 | v2.6.0 | 内容源规整（97→85：去除重复源、分类修正、命名统一）+ 数据导入导出（书签/历史/RSS/设置）+ 测试扩至 33 项 |
 | v2.5.0 | 减小产物体积：仅保留 zh-CN/en-US 语言包 + maximum 压缩 + 排除冗余资源（Windows exe 首次 <100MB） |
 | v2.4.0 | 新增 27 个内容源（虫部落 RSS 清单），源总数 70→97 |

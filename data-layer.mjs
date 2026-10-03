@@ -168,7 +168,8 @@ var init_sources_data = __esm({
         column: "tech",
         home: "https://aihot.virxact.com/all",
         color: "blue",
-        interval: 3e5
+        interval: 3e5,
+        _rss: "https://aihot.virxact.com/feed/all.xml"
       },
       tieba: {
         title: "\u70ED\u8BAE",
@@ -285,7 +286,8 @@ var init_sources_data = __esm({
         column: "tech",
         home: "https://solidot.org",
         color: "teal",
-        interval: 36e5
+        interval: 36e5,
+        _rss: "https://www.solidot.org/index.rss"
       },
       hackernews: {
         name: "Hacker News",
@@ -301,7 +303,8 @@ var init_sources_data = __esm({
         column: "tech",
         home: "https://www.producthunt.com/",
         color: "red",
-        interval: 6e5
+        interval: 6e5,
+        _rss: "https://www.producthunt.com/feed"
       },
       "bilibili-hot-search": {
         name: "\u54D4\u54E9\u54D4\u54E9",
@@ -468,7 +471,8 @@ var init_sources_data = __esm({
         column: "tech",
         color: "orange",
         interval: 6e5,
-        home: "https://www.huxiu.com"
+        home: "https://www.huxiu.com",
+        _rss: "https://rsshub.rssforever.com/huxiu/article"
       },
       caixin: {
         name: "\u8D22\u65B0\u7F51",
@@ -476,7 +480,8 @@ var init_sources_data = __esm({
         column: "finance",
         color: "blue",
         interval: 6e5,
-        home: "https://www.caixin.com"
+        home: "https://www.caixin.com",
+        _rss: "https://rsshub.rssforever.com/caixin/latest"
       },
       cctv: {
         name: "\u592E\u89C6\u65B0\u95FB",
@@ -485,7 +490,8 @@ var init_sources_data = __esm({
         color: "red",
         interval: 6e5,
         home: "https://news.cctv.com",
-        title: "\u65B0\u95FB"
+        title: "\u65B0\u95FB",
+        _rss: "https://rsshub.rssforever.com/cctv/news"
       },
       cnbeta: {
         name: "cnBeta",
@@ -493,7 +499,8 @@ var init_sources_data = __esm({
         column: "tech",
         color: "slate",
         interval: 6e5,
-        home: "https://www.cnbeta.com"
+        home: "https://www.cnbeta.com",
+        _rss: "https://rsshub.rssforever.com/cnbeta"
       },
       "sspai-matrix": {
         name: "\u5C11\u6570\u6D3E",
@@ -502,7 +509,8 @@ var init_sources_data = __esm({
         column: "tech",
         color: "red",
         interval: 6e5,
-        home: "https://sspai.com"
+        home: "https://sspai.com",
+        _rss: "https://rsshub.rssforever.com/sspai/matrix"
       },
       people: {
         name: "\u4EBA\u6C11\u7F51",
@@ -511,7 +519,8 @@ var init_sources_data = __esm({
         column: "china",
         color: "red",
         interval: 6e5,
-        home: "http://www.people.com.cn"
+        home: "http://www.people.com.cn",
+        _rss: "https://rsshub.rssforever.com/people/opinion"
       },
       "36kr-hot": {
         name: "36\u6C2A",
@@ -520,7 +529,8 @@ var init_sources_data = __esm({
         column: "tech",
         color: "blue",
         interval: 6e5,
-        home: "https://36kr.com"
+        home: "https://36kr.com",
+        _rss: "https://rsshub.rssforever.com/36kr/hot-list"
       },
       rfi: {
         name: "\u6CD5\u5E7F",
@@ -529,7 +539,8 @@ var init_sources_data = __esm({
         column: "world",
         color: "blue",
         interval: 6e5,
-        home: "https://www.rfi.fr/cn"
+        home: "https://www.rfi.fr/cn",
+        _rss: "https://www.rfi.fr/cn/rss"
       },
       nyt: {
         name: "\u7EBD\u7EA6\u65F6\u62A5",
@@ -538,7 +549,8 @@ var init_sources_data = __esm({
         column: "world",
         color: "slate",
         interval: 6e5,
-        home: "https://cn.nytimes.com"
+        home: "https://cn.nytimes.com",
+        _rss: "https://cn.nytimes.com/rss/"
       },
       ft: {
         name: "FT\u4E2D\u6587\u7F51",
@@ -546,7 +558,8 @@ var init_sources_data = __esm({
         column: "finance",
         color: "salmon",
         interval: 6e5,
-        home: "https://www.ftchinese.com"
+        home: "https://www.ftchinese.com",
+        _rss: "https://www.ftchinese.com/rss/feed"
       },
       "zhihu-daily": {
         name: "\u77E5\u4E4E\u65E5\u62A5",

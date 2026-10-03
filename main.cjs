@@ -4,6 +4,7 @@ const { app, BrowserWindow, WebContentsView, Menu, ipcMain, shell, dialog, proto
 const path = require("node:path")
 const fs = require("node:fs")
 const { mergeBookmarks, mergeHistory, mergeRssFeeds, applyImportedSettings } = require("./merge-data.cjs")
+const { generateOpml } = require("./opml.cjs")
 
 // 自动更新（仅打包后生效，开发模式跳过）
 let autoUpdater = null
@@ -17,7 +18,7 @@ const VIEWER_PRELOAD = path.join(APP_DIR, "viewer-preload.cjs")
 const SETTINGS_HTML = path.join(APP_DIR, "settings.html")
 const SETTINGS_PRELOAD = path.join(APP_DIR, "settings-preload.cjs")
 
-const VERSION = "2.6.0"
+const VERSION = "2.6.1"
 const BUILD_DATE = "2026-10-03"
 const APP_NAME = "NND"
 const APP_FULL_NAME = "NewsNow Desktop"
@@ -1280,6 +1281,50 @@ ipcMain.handle("settings:export", async () => {
     }
   } catch (e) {
     console.error("导出失败:", e)
+    return { ok: false, error: String(e && e.message ? e.message : e) }
+  }
+})
+
+// 订阅列表导出（OPML）：全部内置源（分类分组）+ 自定义 RSS 源
+// 可导入 Tiny Tiny RSS / Feedly / Inoreader 等标准阅读器
+ipcMain.handle("settings:export-opml", async () => {
+  try {
+    const stamp = new Date()
+    const pad = (n) => String(n).padStart(2, "0")
+    const fname = `NND-subscriptions-${stamp.getFullYear()}${pad(stamp.getMonth() + 1)}${pad(stamp.getDate())}.opml`
+    const dialogParent = settingsWindow && !settingsWindow.isDestroyed() ? settingsWindow : undefined
+    const result = await dialog.showSaveDialog(dialogParent, {
+      title: "导出订阅列表（OPML）",
+      defaultPath: path.join(app.getPath("downloads"), fname),
+      filters: [{ name: "OPML 订阅列表", extensions: ["opml", "xml"] }],
+    })
+    if (result.canceled || !result.filePath) return { ok: false, canceled: true }
+    const opml = generateOpml(
+      dataLayer ? dataLayer.sources : {},
+      Array.isArray(config.rssFeeds) ? config.rssFeeds : [],
+      { title: "NND 订阅列表", generatedAt: stamp.toISOString() },
+    )
+    fs.mkdirSync(path.dirname(result.filePath), { recursive: true })
+    fs.writeFileSync(result.filePath, opml, "utf8")
+    let builtinWithFeed = 0
+    let builtinTotal = 0
+    if (dataLayer) {
+      for (const meta of Object.values(dataLayer.sources)) {
+        builtinTotal++
+        if (meta._rss) builtinWithFeed++
+      }
+    }
+    return {
+      ok: true,
+      path: result.filePath,
+      counts: {
+        builtinSources: builtinTotal,
+        builtinWithFeed,
+        customFeeds: Array.isArray(config.rssFeeds) ? config.rssFeeds.length : 0,
+      },
+    }
+  } catch (e) {
+    console.error("OPML 导出失败:", e)
     return { ok: false, error: String(e && e.message ? e.message : e) }
   }
 })

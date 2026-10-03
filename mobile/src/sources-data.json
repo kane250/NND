@@ -130,7 +130,8 @@
     "column": "tech",
     "home": "https://aihot.virxact.com/all",
     "color": "blue",
-    "interval": 300000
+    "interval": 300000,
+    "_rss": "https://aihot.virxact.com/feed/all.xml"
   },
   "tieba": {
     "title": "热议",
@@ -247,7 +248,8 @@
     "column": "tech",
     "home": "https://solidot.org",
     "color": "teal",
-    "interval": 3600000
+    "interval": 3600000,
+    "_rss": "https://www.solidot.org/index.rss"
   },
   "hackernews": {
     "name": "Hacker News",
@@ -263,7 +265,8 @@
     "column": "tech",
     "home": "https://www.producthunt.com/",
     "color": "red",
-    "interval": 600000
+    "interval": 600000,
+    "_rss": "https://www.producthunt.com/feed"
   },
   "bilibili-hot-search": {
     "name": "哔哩哔哩",
@@ -430,7 +433,8 @@
     "column": "tech",
     "color": "orange",
     "interval": 600000,
-    "home": "https://www.huxiu.com"
+    "home": "https://www.huxiu.com",
+    "_rss": "https://rsshub.rssforever.com/huxiu/article"
   },
   "caixin": {
     "name": "财新网",
@@ -438,7 +442,8 @@
     "column": "finance",
     "color": "blue",
     "interval": 600000,
-    "home": "https://www.caixin.com"
+    "home": "https://www.caixin.com",
+    "_rss": "https://rsshub.rssforever.com/caixin/latest"
   },
   "cctv": {
     "name": "央视新闻",
@@ -447,7 +452,8 @@
     "color": "red",
     "interval": 600000,
     "home": "https://news.cctv.com",
-    "title": "新闻"
+    "title": "新闻",
+    "_rss": "https://rsshub.rssforever.com/cctv/news"
   },
   "cnbeta": {
     "name": "cnBeta",
@@ -455,7 +461,8 @@
     "column": "tech",
     "color": "slate",
     "interval": 600000,
-    "home": "https://www.cnbeta.com"
+    "home": "https://www.cnbeta.com",
+    "_rss": "https://rsshub.rssforever.com/cnbeta"
   },
   "sspai-matrix": {
     "name": "少数派",
@@ -464,7 +471,8 @@
     "column": "tech",
     "color": "red",
     "interval": 600000,
-    "home": "https://sspai.com"
+    "home": "https://sspai.com",
+    "_rss": "https://rsshub.rssforever.com/sspai/matrix"
   },
   "people": {
     "name": "人民网",
@@ -473,7 +481,8 @@
     "column": "china",
     "color": "red",
     "interval": 600000,
-    "home": "http://www.people.com.cn"
+    "home": "http://www.people.com.cn",
+    "_rss": "https://rsshub.rssforever.com/people/opinion"
   },
   "36kr-hot": {
     "name": "36氪",
@@ -482,7 +491,8 @@
     "column": "tech",
     "color": "blue",
     "interval": 600000,
-    "home": "https://36kr.com"
+    "home": "https://36kr.com",
+    "_rss": "https://rsshub.rssforever.com/36kr/hot-list"
   },
   "rfi": {
     "name": "法广",
@@ -491,7 +501,8 @@
     "column": "world",
     "color": "blue",
     "interval": 600000,
-    "home": "https://www.rfi.fr/cn"
+    "home": "https://www.rfi.fr/cn",
+    "_rss": "https://www.rfi.fr/cn/rss"
   },
   "nyt": {
     "name": "纽约时报",
@@ -500,7 +511,8 @@
     "column": "world",
     "color": "slate",
     "interval": 600000,
-    "home": "https://cn.nytimes.com"
+    "home": "https://cn.nytimes.com",
+    "_rss": "https://cn.nytimes.com/rss/"
   },
   "ft": {
     "name": "FT中文网",
@@ -508,7 +520,8 @@
     "column": "finance",
     "color": "salmon",
     "interval": 600000,
-    "home": "https://www.ftchinese.com"
+    "home": "https://www.ftchinese.com",
+    "_rss": "https://www.ftchinese.com/rss/feed"
   },
   "zhihu-daily": {
     "name": "知乎日报",

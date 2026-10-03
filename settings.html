@@ -138,11 +138,14 @@
 
   <div class="setting-item">
     <div class="toggle-label">
-      <div class="name" id="ioStatus" style="font-size:12px;font-weight:400;opacity:.75;">导出或导入书签、历史记录与设置（含自定义 RSS 源）</div>
+      <div class="name" id="ioStatus" style="font-size:12px;font-weight:400;opacity:.75;">导出/导入书签、历史与设置；订阅列表可另存 OPML（含全部内置源，可导入其他 RSS 阅读器）</div>
     </div>
     <div style="display:flex;gap:8px;margin-top:8px;">
       <button id="btnExport" style="flex:1;">导出数据…</button>
       <button id="btnImport" style="flex:1;">导入数据…</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button id="btnExportOpml" style="flex:1;">导出订阅列表（OPML）…</button>
     </div>
   </div>
 
@@ -224,6 +227,20 @@
     const r = await window.settings.exportData()
     if (r.ok) {
       status.textContent = "✓ 已导出 " + r.counts.bookmarks + " 条书签、" + r.counts.history + " 条历史、" + r.counts.rssFeeds + " 个自定义源"
+    } else if (r.canceled) {
+      status.textContent = "已取消导出"
+    } else {
+      status.textContent = "✗ 导出失败：" + (r.error || "未知错误")
+    }
+  })
+
+  // 订阅列表导出（OPML）
+  $("btnExportOpml").addEventListener("click", async () => {
+    const status = $("ioStatus")
+    status.textContent = "正在导出订阅…"
+    const r = await window.settings.exportOpml()
+    if (r.ok) {
+      status.textContent = "✓ 已导出订阅列表：" + r.counts.builtinSources + " 个内置源（" + r.counts.builtinWithFeed + " 个含 RSS 地址）+ " + r.counts.customFeeds + " 个自定义源"
     } else if (r.canceled) {
       status.textContent = "已取消导出"
     } else {

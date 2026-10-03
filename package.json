@@ -1,6 +1,6 @@
 {
   "name": "nnd",
-  "version": "2.6.0",
+  "version": "2.6.1",
   "description": "NND (NewsNow Desktop) — 跨平台新闻聚合阅读器 v2.0（主进程直抓架构，无原生模块）",
   "main": "main.cjs",
   "author": {
@@ -35,6 +35,7 @@
     "files": [
       "main.cjs",
       "merge-data.cjs",
+      "opml.cjs",
       "data-layer.mjs",
       "viewer.html",
       "viewer-preload.cjs",
