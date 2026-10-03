@@ -16,7 +16,7 @@ const VIEWER_PRELOAD = path.join(APP_DIR, "viewer-preload.cjs")
 const SETTINGS_HTML = path.join(APP_DIR, "settings.html")
 const SETTINGS_PRELOAD = path.join(APP_DIR, "settings-preload.cjs")
 
-const VERSION = "2.1.0"
+const VERSION = "2.2.0"
 const BUILD_DATE = "2026-10-02"
 const APP_NAME = "NND"
 const APP_FULL_NAME = "NewsNow Desktop"
@@ -31,10 +31,14 @@ const DEFAULT_CONFIG = {
   theme: "dark", // dark / light
   readerFontSize: 16, // 阅读器字体大小 (px)
   readerLineHeight: 1.8, // 阅读器行距
+  rssFeeds: [], // 自定义 RSS 源列表 [{id, name, url}]
 }
 
+// ---------- 数据持久化（书签/历史/RSS） ----------
 const userDataDir = app.getPath("userData")
 const CONFIG_PATH = path.join(userDataDir, "config.json")
+const BOOKMARKS_PATH = path.join(userDataDir, "bookmarks.json")
+const HISTORY_PATH = path.join(userDataDir, "history.json")
 
 let config = loadConfig()
 let dataLayer = null
@@ -143,6 +147,40 @@ function jsonResponse(obj, status = 200) {
   })
 }
 
+// ---------- 通用 RSS/Atom Feed 解析器 ----------
+async function fetchRssFeed(feed) {
+  const res = await fetch(feed.url, {
+    headers: { "User-Agent": "NND/2.1 RSS Reader" },
+    signal: AbortSignal.timeout(15000),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  const text = await res.text()
+  const items = []
+  // 简易 XML 解析（不依赖 DOMParser，用正则提取 item/entry）
+  const itemRe = /<(?:item|entry)>([\s\S]*?)<\/(?:item|entry)>/gi
+  let m
+  while ((m = itemRe.exec(text)) !== null && items.length < 30) {
+    const block = m[1]
+    const title = block.match(/<title[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/i)?.[1]?.trim() || ""
+    const link = block.match(/<link[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/link>/i)?.[1]?.trim()
+      || block.match(/<link[^>]*href="([^"]+)"/i)?.[1]?.trim() || ""
+    const pubDate = block.match(/<(?:pubDate|published|updated)[^>]*>([\s\S]*?)<\/(?:pubDate|published|updated)>/i)?.[1]?.trim() || ""
+    const desc = block.match(/<(?:description|summary|content)[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/(?:description|summary|content)>/i)?.[1]?.trim() || ""
+    if (title && link) {
+      items.push({
+        id: link,
+        title: title.replace(/<[^>]+>/g, ""),
+        url: link,
+        mobileUrl: link,
+        hot: 0,
+        pubDate: pubDate ? new Date(pubDate).getTime() || Date.now() : Date.now(),
+        description: desc.replace(/<[^>]+>/g, "").slice(0, 200),
+      })
+    }
+  }
+  return items
+}
+
 async function handleApi(pathname, url, request) {
   // 版本信息（原 /api/latest）
   if (pathname === "/api/latest") return jsonResponse({ v: VERSION })
@@ -179,7 +217,116 @@ async function handleApi(pathname, url, request) {
       return jsonResponse([], 500)
     }
   }
-  return new Response("Not Found", { status: 404 })
+  // ---------- 书签 API ----------
+  if (pathname === "/api/bookmarks") {
+    try {
+      const bookmarks = JSON.parse(fs.readFileSync(BOOKMARKS_PATH, "utf8"))
+      return jsonResponse(bookmarks)
+    } catch (_) { return jsonResponse([]) }
+  }
+  if (pathname === "/api/bookmarks/add" && request.method === "POST") {
+    try {
+      const raw = Buffer.from(request.uploadData[0].bytes).toString("utf8")
+      const item = JSON.parse(raw)
+      let bookmarks = []
+      try { bookmarks = JSON.parse(fs.readFileSync(BOOKMARKS_PATH, "utf8")) } catch (_) {}
+      // 去重（按 url）
+      bookmarks = bookmarks.filter(b => b.url !== item.url)
+      bookmarks.unshift({ ...item, savedAt: Date.now() })
+      fs.writeFileSync(BOOKMARKS_PATH, JSON.stringify(bookmarks, null, 2))
+      return jsonResponse({ ok: true, count: bookmarks.length })
+    } catch (e) { return jsonResponse({ ok: false, error: e.message }, 500) }
+  }
+  if (pathname === "/api/bookmarks/remove" && request.method === "POST") {
+    try {
+      const raw = Buffer.from(request.uploadData[0].bytes).toString("utf8")
+      const { url } = JSON.parse(raw)
+      let bookmarks = []
+      try { bookmarks = JSON.parse(fs.readFileSync(BOOKMARKS_PATH, "utf8")) } catch (_) {}
+      bookmarks = bookmarks.filter(b => b.url !== url)
+      fs.writeFileSync(BOOKMARKS_PATH, JSON.stringify(bookmarks, null, 2))
+      return jsonResponse({ ok: true, count: bookmarks.length })
+    } catch (e) { return jsonResponse({ ok: false, error: e.message }, 500) }
+  }
+  // ---------- 阅读历史 API ----------
+  if (pathname === "/api/history") {
+    try {
+      const history = JSON.parse(fs.readFileSync(HISTORY_PATH, "utf8"))
+      return jsonResponse(history)
+    } catch (_) { return jsonResponse([]) }
+  }
+  if (pathname === "/api/history/add" && request.method === "POST") {
+    try {
+      const raw = Buffer.from(request.uploadData[0].bytes).toString("utf8")
+      const item = JSON.parse(raw)
+      let history = []
+      try { history = JSON.parse(fs.readFileSync(HISTORY_PATH, "utf8")) } catch (_) {}
+      // 去重（按 url），保留最近 200 条
+      history = history.filter(h => h.url !== item.url)
+      history.unshift({ ...item, readAt: Date.now() })
+      if (history.length > 200) history = history.slice(0, 200)
+      fs.writeFileSync(HISTORY_PATH, JSON.stringify(history, null, 2))
+      return jsonResponse({ ok: true, count: history.length })
+    } catch (e) { return jsonResponse({ ok: false, error: e.message }, 500) }
+  }
+  if (pathname === "/api/history/clear" && request.method === "POST") {
+    try {
+      fs.writeFileSync(HISTORY_PATH, "[]")
+      return jsonResponse({ ok: true })
+    } catch (e) { return jsonResponse({ ok: false, error: e.message }, 500) }
+  }
+  // ---------- 自定义 RSS 源 API ----------
+  if (pathname === "/api/rss") {
+    return jsonResponse(config.rssFeeds || [])
+  }
+  if (pathname === "/api/rss/add" && request.method === "POST") {
+    try {
+      const raw = Buffer.from(request.uploadData[0].bytes).toString("utf8")
+      const { name, url } = JSON.parse(raw)
+      if (!url) return jsonResponse({ ok: false, error: "URL 不能为空" }, 400)
+      const id = "rss-" + Date.now()
+      const feed = { id, name: name || url, url }
+      config.rssFeeds = config.rssFeeds || []
+      config.rssFeeds.push(feed)
+      saveConfig()
+      return jsonResponse({ ok: true, feed })
+    } catch (e) { return jsonResponse({ ok: false, error: e.message }, 500) }
+  }
+  if (pathname === "/api/rss/remove" && request.method === "POST") {
+    try {
+      const raw = Buffer.from(request.uploadData[0].bytes).toString("utf8")
+      const { id } = JSON.parse(raw)
+      config.rssFeeds = (config.rssFeeds || []).filter(f => f.id !== id)
+      saveConfig()
+      return jsonResponse({ ok: true })
+    } catch (e) { return jsonResponse({ ok: false, error: e.message }, 500) }
+  }
+  // 自定义 RSS 源数据获取（/api/s?id=rss-xxx）
+  if (pathname === "/api/s") {
+    const id = url.searchParams.get("id")
+    const latest = url.searchParams.get("latest")
+    if (!id) return jsonResponse({ status: "error", id: "", updatedTime: Date.now(), items: [] }, 400)
+    // 自定义 RSS 源
+    if (id.startsWith("rss-")) {
+      const feed = (config.rssFeeds || []).find(f => f.id === id)
+      if (!feed) return jsonResponse({ status: "error", id, updatedTime: Date.now(), items: [] }, 404)
+      try {
+        const items = await fetchRssFeed(feed)
+        return jsonResponse({ status: "ok", id, updatedTime: Date.now(), items })
+      } catch (e) {
+        console.warn(`RSS 源 ${feed.url} 获取失败:`, e.message)
+        return jsonResponse({ status: "error", id, updatedTime: Date.now(), items: [] }, 500)
+      }
+    }
+    // 内置源
+    try {
+      const res = await dataLayer.getSourceData(id, latest === "1" || latest === "true")
+      return jsonResponse(res)
+    } catch (e) {
+      console.warn(`源 ${id} 获取失败:`, e && e.message)
+      return jsonResponse({ status: "error", id, updatedTime: Date.now(), items: [] }, 500)
+    }
+  }
 }
 
 function registerAppProtocol() {
@@ -283,7 +430,7 @@ function createMainWindow() {
   // 使用独立入口 index-v2.html（引用重命名后的 bundle），完全规避 Chromium 对 index.html 的启发式缓存
   mainWindow.loadURL("app://local/index-v2.html?v=" + BUILD_DATE.replace(/[^0-9]/g, ""))
 
-  // 注入主题控制：根据 config.theme 在 <html> 上添加/移除 dark class
+  // 注入主题控制 + 书签/历史/搜索功能
   mainWindow.webContents.on("dom-ready", () => {
     if (!mainWindow || mainWindow.isDestroyed()) return
     try {
@@ -295,6 +442,161 @@ function createMainWindow() {
           } else {
             document.documentElement.classList.add("dark");
           }
+          // 书签/历史/搜索面板注入
+          if (window.__nndInjected) return;
+          window.__nndInjected = true;
+          var css = \`
+            #nnd-panel{position:fixed;top:0;right:0;width:380px;height:100vh;background:#1a1a1e;color:#e6e6e6;z-index:999999;box-shadow:-4px 0 24px rgba(0,0,0,.4);display:none;flex-direction:column;font:14px/1.5 -apple-system,"Segoe UI","Microsoft YaHei",system-ui,sans-serif;}
+            #nnd-panel.open{display:flex;}
+            #nnd-panel .header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #2e2e34;}
+            #nnd-panel .header h2{font-size:15px;font-weight:600;margin:0;}
+            #nnd-panel .header .close{cursor:pointer;font-size:20px;opacity:.5;padding:4px 8px;}
+            #nnd-panel .header .close:hover{opacity:1;}
+            #nnd-panel .tabs{display:flex;gap:0;border-bottom:1px solid #2e2e34;}
+            #nnd-panel .tabs button{flex:1;padding:10px;background:none;border:0;border-bottom:2px solid transparent;color:#999;cursor:pointer;font-size:13px;}
+            #nnd-panel .tabs button.active{color:#e6e6e6;border-bottom-color:#6c8cff;}
+            #nnd-panel .content{flex:1;overflow-y:auto;padding:8px;}
+            #nnd-panel .content .item{padding:10px 12px;border-radius:8px;cursor:pointer;margin-bottom:4px;}
+            #nnd-panel .content .item:hover{background:#222228;}
+            #nnd-panel .content .item .title{font-size:13px;font-weight:500;margin-bottom:3px;}
+            #nnd-panel .content .item .meta{font-size:11px;opacity:.5;}
+            #nnd-panel .content .item .del{float:right;opacity:0;cursor:pointer;}
+            #nnd-panel .content .item:hover .del{opacity:.6;}
+            #nnd-panel .content .del:hover{opacity:1;}
+            #nnd-panel .empty{text-align:center;padding:40px 20px;opacity:.4;}
+            #nnd-panel .search-bar{padding:8px 12px;border-bottom:1px solid #2e2e34;}
+            #nnd-panel .search-bar input{width:100%;padding:8px 12px;border-radius:8px;border:1px solid #3a3a40;background:#222228;color:#e6e6e6;font-size:13px;outline:none;}
+            #nnd-panel .search-bar input:focus{border-color:#6c8cff;}
+            #nnd-panel .actions{padding:8px 12px;border-top:1px solid #2e2e34;display:flex;gap:8px;}
+            #nnd-panel .actions button{flex:1;padding:8px;border-radius:6px;border:1px solid #3a3a40;background:#26262c;color:#e6e6e6;cursor:pointer;font-size:12px;}
+            #nnd-panel .actions button:hover{background:#32323a;}
+            #nnd-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:999998;display:none;}
+            #nnd-overlay.open{display:block;}
+          \`;
+          var styleEl = document.createElement("style");
+          styleEl.textContent = css;
+          document.head.appendChild(styleEl);
+
+          // Overlay
+          var overlay = document.createElement("div");
+          overlay.id = "nnd-overlay";
+          overlay.onclick = function(){ panel.classList.remove("open"); overlay.classList.remove("open"); };
+          document.body.appendChild(overlay);
+
+          // Panel
+          var panel = document.createElement("div");
+          panel.id = "nnd-panel";
+          panel.innerHTML = \`
+            <div class="header"><h2 id="nnd-panel-title">书签</h2><span class="close" id="nnd-close">&times;</span></div>
+            <div class="tabs">
+              <button data-tab="bookmarks" class="active">书签</button>
+              <button data-tab="history">历史</button>
+              <button data-tab="search">搜索</button>
+            </div>
+            <div class="search-bar" style="display:none;" id="nnd-search-bar">
+              <input id="nnd-search-input" placeholder="搜索已加载的新闻..." autocomplete="off">
+            </div>
+            <div class="content" id="nnd-content"></div>
+            <div class="actions" id="nnd-actions" style="display:none;"><button id="nnd-clear-history">清除全部历史</button></div>
+          \`;
+          document.body.appendChild(panel);
+
+          var currentTab = "bookmarks";
+          var content = document.getElementById("nnd-content");
+
+          function fmtTime(ts){var d=new Date(ts);return d.getMonth()+1+"/"+d.getDate()+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");}
+
+          async function loadBookmarks() {
+            try {
+              var r = await fetch("app://local/api/bookmarks");
+              var items = await r.json();
+              if (!items.length) { content.innerHTML = '<div class="empty">暂无书签</div>'; return; }
+              content.innerHTML = items.map(function(b){
+                return '<div class="item" data-url="'+b.url+'"><span class="del" data-del="'+b.url+'">&times;</span><div class="title">'+b.title+'</div><div class="meta">'+fmtTime(b.savedAt)+' · '+(b.source||"")+'</div></div>';
+              }).join("");
+            } catch(e) { content.innerHTML = '<div class="empty">加载失败</div>'; }
+          }
+
+          async function loadHistory() {
+            try {
+              var r = await fetch("app://local/api/history");
+              var items = await r.json();
+              if (!items.length) { content.innerHTML = '<div class="empty">暂无阅读历史</div>'; return; }
+              content.innerHTML = items.map(function(h){
+                return '<div class="item" data-url="'+h.url+'"><div class="title">'+h.title+'</div><div class="meta">'+fmtTime(h.readAt)+' · '+(h.source||"")+'</div></div>';
+              }).join("");
+            } catch(e) { content.innerHTML = '<div class="empty">加载失败</div>'; }
+          }
+
+          function doSearch(q) {
+            if (!q || q.length < 2) { content.innerHTML = '<div class="empty">输入至少 2 个字符</div>'; return; }
+            // 从当前页面卡片中搜索
+            var links = document.querySelectorAll("a[href]");
+            var results = [];
+            links.forEach(function(a) {
+              var t = a.textContent.trim();
+              if (t && t.length > 3 && t.toLowerCase().indexOf(q.toLowerCase()) > -1) {
+                results.push({url: a.href, title: t, src: a.closest("[data-source]") ? a.closest("[data-source]").getAttribute("data-source") : ""});
+              }
+            });
+            if (!results.length) { content.innerHTML = '<div class="empty">未找到匹配结果</div>'; return; }
+            content.innerHTML = results.slice(0, 50).map(function(r){
+              return '<div class="item" data-url="'+r.url+'"><div class="title">'+r.title+'</div><div class="meta">'+r.src+'</div></div>';
+            }).join("");
+          }
+
+          function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll("#nnd-panel .tabs button").forEach(function(b){b.classList.toggle("active", b.dataset.tab === tab);});
+            document.getElementById("nnd-panel-title").textContent = tab === "bookmarks" ? "书签" : tab === "history" ? "历史" : "搜索";
+            document.getElementById("nnd-search-bar").style.display = tab === "search" ? "block" : "none";
+            document.getElementById("nnd-actions").style.display = tab === "history" ? "flex" : "none";
+            if (tab === "bookmarks") loadBookmarks();
+            else if (tab === "history") loadHistory();
+            else { content.innerHTML = '<div class="empty">输入关键词搜索已加载的新闻</div>'; }
+          }
+
+          // 事件
+          panel.querySelectorAll(".tabs button").forEach(function(b){
+            b.onclick = function(){ switchTab(b.dataset.tab); };
+          });
+          document.getElementById("nnd-close").onclick = function(){ panel.classList.remove("open"); overlay.classList.remove("open"); };
+          document.getElementById("nnd-search-input").oninput = function(e){ doSearch(e.target.value); };
+          document.getElementById("nnd-clear-history").onclick = async function(){
+            await fetch("app://local/api/history/clear", {method:"POST"});
+            loadHistory();
+          };
+          content.addEventListener("click", function(e){
+            var del = e.target.closest(".del");
+            if (del) {
+              e.stopPropagation();
+              var url = del.dataset.del;
+              fetch("app://local/api/bookmarks/remove", {method:"POST",body:JSON.stringify({url:url})});
+              loadBookmarks();
+              return;
+            }
+            var item = e.target.closest(".item");
+            if (item && item.dataset.url) {
+              // 记录阅读历史
+              var title = item.querySelector(".title") ? item.querySelector(".title").textContent : "";
+              fetch("app://local/api/history/add", {method:"POST",body:JSON.stringify({url:item.dataset.url, title:title})});
+              // 在内置阅读器中打开
+              if (window.__nndOpenUrl) window.__nndOpenUrl(item.dataset.url);
+            }
+          });
+
+          // 暴露面板控制 + 书签功能给主进程
+          window.__nndTogglePanel = function() {
+            if (panel.classList.contains("open")) {
+              panel.classList.remove("open"); overlay.classList.remove("open");
+            } else {
+              panel.classList.add("open"); overlay.classList.add("open");
+              switchTab(currentTab);
+            }
+          };
+          window.__nndAddBookmark = function(url, title, source) {
+            fetch("app://local/api/bookmarks/add", {method:"POST",body:JSON.stringify({url:url, title:title, source:source||""})});
+          };
         })();
       `, true)
     } catch (e) {}
@@ -309,6 +611,12 @@ function createMainWindow() {
     } else if (input.control && !input.alt && !input.meta && !input.shift && input.key === ",") {
       e.preventDefault()
       openSettings()
+    } else if (input.control && !input.alt && !input.meta && !input.shift && (input.key === "b" || input.key === "B")) {
+      e.preventDefault()
+      mainWindow.webContents.executeJavaScript("window.__nndTogglePanel && window.__nndTogglePanel()", true)
+    } else if (input.control && !input.alt && !input.meta && input.shift && (input.key === "f" || input.key === "F")) {
+      e.preventDefault()
+      mainWindow.webContents.executeJavaScript("window.__nndTogglePanel && (function(){window.__nndTogglePanel();var b=document.querySelector('#nnd-panel .tabs button[data-tab=search]');if(b)b.click();var i=document.getElementById('nnd-search-input');if(i)setTimeout(function(){i.focus();},100);})()", true)
     }
   })
 
@@ -367,6 +675,12 @@ function createTray() {
   const contextMenu = Menu.buildFromTemplate([
     { label: "显示主窗口", click: () => showMainWindow() },
     { label: "刷新全部", click: refreshAll },
+    { label: "书签/历史/搜索", click: () => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        showMainWindow()
+        mainWindow.webContents.executeJavaScript("window.__nndTogglePanel && window.__nndTogglePanel()", true)
+      }
+    }},
     { type: "separator" },
     { label: "设置…", click: openSettings },
     { label: "关于…", click: () => {
@@ -687,6 +1001,15 @@ article, .article, .article-content, .article-body, .content-article,
 
   viewer.active = true
   viewer.content.webContents.loadURL(url)
+  // 记录阅读历史
+  try {
+    const items = JSON.parse(fs.readFileSync(HISTORY_PATH, "utf8"))
+    items.unshift({ url, title: url, readAt: Date.now() })
+    const deduped = items.filter((h, i, a) => a.findIndex(x => x.url === h.url) === i).slice(0, 200)
+    fs.writeFileSync(HISTORY_PATH, JSON.stringify(deduped, null, 2))
+  } catch (_) {
+    fs.writeFileSync(HISTORY_PATH, JSON.stringify([{ url, title: url, readAt: Date.now() }], null, 2))
+  }
   layoutViewer()
   updateMenu()
 }
@@ -735,7 +1058,7 @@ function openSettings() {
   }
   settingsWindow = new BrowserWindow({
     width: 420,
-    height: 560,
+    height: 680,
     resizable: false,
     minimizable: false,
     maximizable: false,
@@ -816,6 +1139,12 @@ function buildMenu() {
       submenu: [
         { label: "刷新全部 (Ctrl+R)", click: refreshAll },
         { label: "重新加载页面", accelerator: "F5", click: () => mainWindow && mainWindow.reload() },
+        { type: "separator" },
+        { label: "书签面板 (Ctrl+B)", click: () => {
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.executeJavaScript("window.__nndTogglePanel && window.__nndTogglePanel()", true)
+          }
+        }},
         { type: "separator" },
         { label: "放大", accelerator: "CmdOrCtrl+=", role: "zoomIn" },
         { label: "缩小", accelerator: "CmdOrCtrl+-", role: "zoomOut" },

@@ -119,6 +119,21 @@
     </div>
   </div>
 
+  <div class="section-title">自定义 RSS 源</div>
+
+  <div class="setting-item">
+    <div class="toggle-label">
+      <div class="name">添加 RSS 源</div>
+      <div class="desc">输入 RSS/Atom Feed URL，添加后可在「更多」中看到</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <input type="text" id="rssName" placeholder="名称（可选）" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid #3a3a40;background:#1e1e24;color:#e6e6e6;font-size:13px;outline:none;">
+      <input type="text" id="rssUrl" placeholder="https://example.com/feed.xml" style="flex:2;padding:8px 10px;border-radius:8px;border:1px solid #3a3a40;background:#1e1e24;color:#e6e6e6;font-size:13px;outline:none;">
+      <button id="addRss" style="white-space:nowrap;">添加</button>
+    </div>
+    <div id="rssList" style="margin-top:10px;"></div>
+  </div>
+
   <div class="actions">
     <button id="cancel">取消</button>
     <button id="save" class="primary">保存</button>
@@ -152,7 +167,42 @@
     $("readerLineHeight").addEventListener("input", (e) => {
       $("readerLineHeightVal").textContent = Number(e.target.value).toFixed(1)
     })
+    // 自定义 RSS 源
+    await loadRssFeeds()
   })()
+
+  async function loadRssFeeds() {
+    try {
+      const r = await fetch("app://local/api/rss")
+      const feeds = await r.json()
+      const list = $("rssList")
+      if (!feeds.length) {
+        list.innerHTML = '<div style="opacity:.4;font-size:12px;padding:8px;">暂无自定义源</div>'
+        return
+      }
+      list.innerHTML = feeds.map(f =>
+        '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-radius:6px;background:#1e1e24;margin-top:4px;">' +
+        '<div><span style="font-size:13px;">' + f.name + '</span> <span style="font-size:11px;opacity:.4;margin-left:8px;">' + f.url.slice(0, 40) + '</span></div>' +
+        '<button data-rss-id="' + f.id + '" class="rss-del" style="padding:2px 8px;font-size:11px;border-radius:4px;">删除</button></div>'
+      ).join("")
+      list.querySelectorAll(".rss-del").forEach(b => {
+        b.onclick = async () => {
+          await fetch("app://local/api/rss/remove", { method: "POST", body: JSON.stringify({ id: b.dataset.rssId }) })
+          loadRssFeeds()
+        }
+      })
+    } catch (e) { $("rssList").innerHTML = '<div style="opacity:.4;font-size:12px;">加载失败</div>' }
+  }
+
+  $("addRss").addEventListener("click", async () => {
+    const name = $("rssName").value.trim()
+    const url = $("rssUrl").value.trim()
+    if (!url) return
+    await fetch("app://local/api/rss/add", { method: "POST", body: JSON.stringify({ name, url }) })
+    $("rssName").value = ""
+    $("rssUrl").value = ""
+    loadRssFeeds()
+  })
 
   $("save").addEventListener("click", async () => {
     const interval = Number(document.querySelector('input[name="interval"]:checked')?.value || 10)
