@@ -16,7 +16,7 @@ const VIEWER_PRELOAD = path.join(APP_DIR, "viewer-preload.cjs")
 const SETTINGS_HTML = path.join(APP_DIR, "settings.html")
 const SETTINGS_PRELOAD = path.join(APP_DIR, "settings-preload.cjs")
 
-const VERSION = "2.2.0"
+const VERSION = "2.3.0"
 const BUILD_DATE = "2026-10-02"
 const APP_NAME = "NND"
 const APP_FULL_NAME = "NewsNow Desktop"
@@ -181,6 +181,65 @@ async function fetchRssFeed(feed) {
   return items
 }
 
+// ---------- 内容智能工具函数 ----------
+
+// 标题相似度去重：同一批次内标题相似度 > 0.8 的合并（保留热度更高的）
+function deduplicateItems(items) {
+  if (!items || !items.length) return items
+  const result = []
+  for (const item of items) {
+    let isDup = false
+    for (const existing of result) {
+      if (titleSimilarity(item.title, existing.title) > 0.8) {
+        isDup = true
+        // 合并：保留热度更高的，累加来源数
+        if ((item.hot || 0) > (existing.hot || 0)) {
+          existing.hot = item.hot
+          existing.title = item.title
+        }
+        existing._sources = (existing._sources || 1) + 1
+        break
+      }
+    }
+    if (!isDup) result.push({ ...item, _sources: 1 })
+  }
+  return result
+}
+
+// 标题相似度（2-gram Jaccard，对中文和英文都鲁棒）
+function titleSimilarity(a, b) {
+  if (!a || !b) return 0
+  if (a === b) return 1
+  const normalize = s => s.toLowerCase().replace(/\s+/g, "")
+  const na = normalize(a), nb = normalize(b)
+  // 生成 2-gram 集合
+  const grams = (s, n) => { const g = new Set(); for (let i = 0; i <= s.length - n; i++) g.add(s.slice(i, i + n)); return g }
+  const ga = grams(na, 2), gb = grams(nb, 2)
+  if (ga.size === 0 || gb.size === 0) return 0
+  let inter = 0
+  for (const g of ga) if (gb.has(g)) inter++
+  return inter / (ga.size + gb.size - inter)
+}
+
+// 阅读时间估算（基于标题/描述字数，中文按 300 字/分钟，英文按 200 词/分钟）
+function estimateReadTime(text) {
+  if (!text) return 1
+  const chinese = (text.match(/[\u4e00-\u9fa5]/g) || []).length
+  const words = (text.replace(/[\u4e00-\u9fa5]/g, " ").match(/[a-zA-Z]+/g) || []).length
+  const minutes = Math.ceil(chinese / 300 + words / 200)
+  return Math.max(1, minutes)
+}
+
+// 去重 + 阅读时间增强：给每个 item 添加 _readTime 和 _sources
+function enhanceItems(items) {
+  const deduped = deduplicateItems(items)
+  return deduped.map(item => ({
+    ...item,
+    _readTime: estimateReadTime((item.title || "") + " " + (item.description || "")),
+    _sources: item._sources || 1,
+  }))
+}
+
 async function handleApi(pathname, url, request) {
   // 版本信息（原 /api/latest）
   if (pathname === "/api/latest") return jsonResponse({ v: VERSION })
@@ -188,13 +247,27 @@ async function handleApi(pathname, url, request) {
   if (pathname === "/api/enable-login") return jsonResponse({ enable: false })
   // 多端同步：无登录态，返回空数据（前端有 jwt 才调用）
   if (pathname === "/api/me/sync") return jsonResponse({ data: { sources: [] }, updatedTime: 0 })
-  // 单源获取
+  // 单源获取（内置源 + 自定义 RSS）
   if (pathname === "/api/s") {
     const id = url.searchParams.get("id")
     const latest = url.searchParams.get("latest")
     if (!id) return jsonResponse({ status: "error", id: "", updatedTime: Date.now(), items: [] }, 400)
+    // 自定义 RSS 源
+    if (id.startsWith("rss-")) {
+      const feed = (config.rssFeeds || []).find(f => f.id === id)
+      if (!feed) return jsonResponse({ status: "error", id, updatedTime: Date.now(), items: [] }, 404)
+      try {
+        const items = await fetchRssFeed(feed)
+        return jsonResponse({ status: "ok", id, updatedTime: Date.now(), items: enhanceItems(items) })
+      } catch (e) {
+        console.warn(`RSS 源 ${feed.url} 获取失败:`, e.message)
+        return jsonResponse({ status: "error", id, updatedTime: Date.now(), items: [] }, 500)
+      }
+    }
+    // 内置源
     try {
       const res = await dataLayer.getSourceData(id, latest === "1" || latest === "true")
+      if (res && res.items) res.items = enhanceItems(res.items)
       return jsonResponse(res)
     } catch (e) {
       console.warn(`源 ${id} 获取失败:`, e && e.message)
@@ -211,6 +284,10 @@ async function handleApi(pathname, url, request) {
         sources = body.sources || []
       }
       const res = await dataLayer.getEntireData(sources)
+      // 增强每个源的数据（去重 + 阅读时间）
+      if (Array.isArray(res)) {
+        res.forEach(src => { if (src && src.items) src.items = enhanceItems(src.items) })
+      }
       return jsonResponse(res)
     } catch (e) {
       console.warn("entire 接口失败:", e && e.message)
@@ -982,13 +1059,68 @@ article, .article, .article-content, .article-body, .content-article,
     viewer.content.webContents.on("did-finish-load", () => {
       sendUrl(viewer.content.webContents.getURL())
     })
-    // dom-ready: 尽早注入禁止自动播放（在页面脚本执行前）
+    // dom-ready: 尽早注入禁止自动播放 + 内容智能（在页面脚本执行前）
     viewer.content.webContents.on("dom-ready", () => {
       if (!viewer.content) return
       try {
         viewer.content.webContents.insertCSS(AD_BLOCK_CSS)
         viewer.content.webContents.executeJavaScript(NO_AUToplay_JS, true)
-        console.log("[viewer] 广告拦截 + 禁止自动播放脚本已注入")
+        // 内容智能注入：阅读时间 + 关键词高亮支持
+        viewer.content.webContents.executeJavaScript(`
+          (function() {
+            if (window.__nndSmartInjected) return;
+            window.__nndSmartInjected = true;
+
+            // —— 阅读时间估算浮标 ——
+            function calcReadTime() {
+              var article = document.querySelector('article, .article, .article-content, .article-body, .post-content, .entry-content, [itemprop="articleBody"]');
+              if (!article) return 0;
+              var text = article.innerText || '';
+              var chinese = (text.match(/[\\u4e00-\\u9fa5]/g) || []).length;
+              var words = (text.replace(/[\\u4e00-\\u9fa5]/g, ' ').match(/[a-zA-Z]+/g) || []).length;
+              return Math.max(1, Math.ceil(chinese / 300 + words / 200));
+            }
+            function showReadTime() {
+              var existing = document.getElementById('nnd-readtime');
+              if (existing) return;
+              var minutes = calcReadTime();
+              if (minutes <= 1) return;
+              var badge = document.createElement('div');
+              badge.id = 'nnd-readtime';
+              badge.style.cssText = 'position:fixed;bottom:20px;right:20px;background:rgba(0,0,0,.75);color:#fff;padding:6px 14px;border-radius:20px;font-size:12px;z-index:999999;backdrop-filter:blur(8px);font-family:system-ui,sans-serif;';
+              badge.innerHTML = '\\u23F1\\uFE0F 约 ' + minutes + ' 分钟阅读';
+              document.body.appendChild(badge);
+              setTimeout(function(){ badge.style.transition='opacity .5s'; badge.style.opacity='0'; }, 5000);
+            }
+            setTimeout(showReadTime, 2000);
+
+            // —— 关键词高亮（由主进程搜索面板触发） ——
+            window.__nndHighlight = function(keyword) {
+              if (!keyword || keyword.length < 2) return;
+              // 移除已有高亮
+              document.querySelectorAll('.nnd-hl').forEach(function(el){
+                var p = el.parentNode; p.replaceChild(document.createTextNode(el.textContent), el); p.normalize();
+              });
+              var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, null);
+              var nodes = []; var node;
+              while ((node = walker.nextNode())) {
+                if (node.parentNode.tagName !== 'SCRIPT' && node.parentNode.tagName !== 'STYLE' && node.textContent.toLowerCase().indexOf(keyword.toLowerCase()) > -1) {
+                  nodes.push(node);
+                }
+              }
+              nodes.forEach(function(n) {
+                var text = n.textContent; var lower = text.toLowerCase();
+                var idx = lower.indexOf(keyword.toLowerCase());
+                if (idx === -1) return;
+                var span = document.createElement('span');
+                span.innerHTML = text.slice(0, idx) + '<mark style="background:#ffeb3b;padding:1px 2px;border-radius:2px;">' + text.slice(idx, idx + keyword.length) + '</mark>' + text.slice(idx + keyword.length);
+                n.parentNode.replaceChild(span, n);
+                span.outerHTML = span.innerHTML; // unwrap
+              });
+            };
+          })();
+        `, true)
+        console.log("[viewer] 广告拦截 + 禁止自动播放 + 内容智能已注入")
       } catch (e) { console.warn("[viewer] 注入失败:", e) }
     })
     viewer.content.webContents.setWindowOpenHandler(({ url: u }) => {
