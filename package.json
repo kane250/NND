@@ -1,6 +1,6 @@
 {
   "name": "nnd",
-  "version": "2.0.3",
+  "version": "2.1.0",
   "description": "NND (NewsNow Desktop) — 跨平台新闻聚合阅读器 v2.0（主进程直抓架构，无原生模块）",
   "main": "main.cjs",
   "author": {
@@ -14,6 +14,9 @@
     "dist:linux": "electron-builder --linux AppImage tar.gz",
     "dist:win": "electron-builder --win nsis",
     "dist": "electron-builder -mlw"
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.9"
   },
   "devDependencies": {
     "electron": "^44.5.1",
@@ -60,7 +63,16 @@
     },
     "deb": {
       "artifactName": "NND-${version}-${arch}.deb",
-      "depends": ["libnotify4", "libnss3", "libxss1", "libxtst6", "xdg-utils", "libatspi2.0-0", "libuuid1", "libsecret-1-0"]
+      "depends": [
+        "libnotify4",
+        "libnss3",
+        "libxss1",
+        "libxtst6",
+        "xdg-utils",
+        "libatspi2.0-0",
+        "libuuid1",
+        "libsecret-1-0"
+      ]
     },
     "nsis": {
       "artifactName": "NND-${version}-win-${arch}-setup.exe",
@@ -69,6 +81,14 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "NND"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "kane250",
+      "repo": "NND"
     }
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
   }
 }

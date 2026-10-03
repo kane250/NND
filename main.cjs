@@ -1,8 +1,12 @@
 "use strict"
 
-const { app, BrowserWindow, WebContentsView, Menu, ipcMain, shell, dialog, protocol, Tray, nativeImage } = require("electron")
+const { app, BrowserWindow, WebContentsView, Menu, ipcMain, shell, dialog, protocol, Tray, nativeImage, Notification } = require("electron")
 const path = require("node:path")
 const fs = require("node:fs")
+
+// 自动更新（仅打包后生效，开发模式跳过）
+let autoUpdater = null
+try { autoUpdater = require("electron-updater").autoUpdater } catch (_) {}
 
 const APP_DIR = __dirname
 const DATA_LAYER = path.join(APP_DIR, "data-layer.mjs")
@@ -12,7 +16,7 @@ const VIEWER_PRELOAD = path.join(APP_DIR, "viewer-preload.cjs")
 const SETTINGS_HTML = path.join(APP_DIR, "settings.html")
 const SETTINGS_PRELOAD = path.join(APP_DIR, "settings-preload.cjs")
 
-const VERSION = "2.0.3"
+const VERSION = "2.1.0"
 const BUILD_DATE = "2026-10-02"
 const APP_NAME = "NND"
 const APP_FULL_NAME = "NewsNow Desktop"
@@ -24,6 +28,9 @@ const DEFAULT_CONFIG = {
   intervalMinutes: 10,
   viewerInApp: true, // 内置阅读器（关闭则点击在外部浏览器打开）
   windowBounds: null,
+  theme: "dark", // dark / light
+  readerFontSize: 16, // 阅读器字体大小 (px)
+  readerLineHeight: 1.8, // 阅读器行距
 }
 
 const userDataDir = app.getPath("userData")
@@ -275,6 +282,23 @@ function createMainWindow() {
 
   // 使用独立入口 index-v2.html（引用重命名后的 bundle），完全规避 Chromium 对 index.html 的启发式缓存
   mainWindow.loadURL("app://local/index-v2.html?v=" + BUILD_DATE.replace(/[^0-9]/g, ""))
+
+  // 注入主题控制：根据 config.theme 在 <html> 上添加/移除 dark class
+  mainWindow.webContents.on("dom-ready", () => {
+    if (!mainWindow || mainWindow.isDestroyed()) return
+    try {
+      mainWindow.webContents.executeJavaScript(`
+        (function() {
+          var theme = ${JSON.stringify(config.theme || "dark")};
+          if (theme === "light") {
+            document.documentElement.classList.remove("dark");
+          } else {
+            document.documentElement.classList.add("dark");
+          }
+        })();
+      `, true)
+    } catch (e) {}
+  })
 
   // 键盘快捷键在主进程拦截：避免 Ctrl+R 触发浏览器默认整页刷新（丢滚动位置）
   mainWindow.webContents.on("before-input-event", (e, input) => {
@@ -585,6 +609,23 @@ iframe[src*="ad_delivery"],iframe[src*="adify"],
 body > [style*="position:fixed"][style*="z-index"]:not(header):not(nav),
 body > [style*="position: fixed"][style*="z-index"]:not(header):not(nav),
 {display:none!important}
+
+/* —— 阅读优化：字体大小 + 行距 + 页边距 —— */
+article, .article, .article-content, .article-body, .content-article,
+.post-content, .entry-content, .news-content, .main-content,
+.rich-text, .text-content, .article-detail, .article-text,
+[itemprop="articleBody"], [class*="article-body"], [class*="article-content"],
+{font-size:${config.readerFontSize || 16}px !important; line-height:${config.readerLineHeight || 1.8} !important;}
+
+/* 文章正文段落间距 */
+article p, .article p, .article-content p, .article-body p,
+.post-content p, .entry-content p, .news-content p, .main-content p,
+.rich-text p, .text-content p, [itemprop="articleBody"] p,
+{margin-bottom: 1em !important;}
+
+/* 文章正文最大宽度（提高长文可读性） */
+article, .article, .article-content, .article-body, .content-article,
+{max-width: 780px !important; margin-left: auto !important; margin-right: auto !important;}
 `
     const NO_AUToplay_JS = `(function(){
       // 移除所有 autoplay 属性
@@ -694,7 +735,7 @@ function openSettings() {
   }
   settingsWindow = new BrowserWindow({
     width: 420,
-    height: 360,
+    height: 560,
     resizable: false,
     minimizable: false,
     maximizable: false,
@@ -717,13 +758,27 @@ ipcMain.handle("settings:load", () => ({
   autoRefresh: config.autoRefresh,
   intervalMinutes: config.intervalMinutes,
   viewerInApp: config.viewerInApp,
+  theme: config.theme || "dark",
+  readerFontSize: config.readerFontSize || 16,
+  readerLineHeight: config.readerLineHeight || 1.8,
 }))
 ipcMain.handle("settings:save", (_e, cfg) => {
   config.autoRefresh = !!cfg.autoRefresh
   config.intervalMinutes = Math.max(1, Math.min(1440, Number(cfg.intervalMinutes) || 10))
   config.viewerInApp = cfg.viewerInApp !== false
+  config.theme = cfg.theme === "light" ? "light" : "dark"
+  config.readerFontSize = Math.max(12, Math.min(22, Number(cfg.readerFontSize) || 16))
+  config.readerLineHeight = Math.max(1.4, Math.min(2.4, Number(cfg.readerLineHeight) || 1.8))
   saveConfig()
   setupRefreshTimer()
+  // 应用主题变更到主窗口
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    try {
+      mainWindow.webContents.executeJavaScript(`
+        document.documentElement.classList.${config.theme === "light" ? "remove" : "add"}("dark");
+      `, true)
+    } catch (e) {}
+  }
   return true
 })
 ipcMain.handle("settings:close", () => {
@@ -798,6 +853,8 @@ function buildMenu() {
       submenu: [
         { label: APP_NAME + " 项目主页", click: () => shell.openExternal(PROJECT_HOME) },
         { label: "致敬原项目 NewsNow", click: () => shell.openExternal(ORIGINAL_PROJECT) },
+        { type: "separator" },
+        { label: "检查更新…", click: () => checkForUpdates() },
       ],
     },
   ]
@@ -835,8 +892,43 @@ if (!gotTheLock) {
   createTray()
   updateMenu()
   setupRefreshTimer()
+
+  // 自动检查更新（启动后 5 秒静默检查，不打断用户）
+  setTimeout(() => checkForUpdates(true), 5000)
   })
 } // end of gotTheLock else block
+
+// ---------- 自动更新 ----------
+function checkForUpdates(silent) {
+  if (!autoUpdater) {
+    if (!silent) dialog.showMessageBox(mainWindow, { type: "info", title: "检查更新", message: "当前为开发模式，自动更新仅在安装包中生效。", buttons: ["确定"] })
+    return
+  }
+  autoUpdater.autoDownload = true
+  autoUpdater.autoInstallOnAppQuit = true
+  autoUpdater.once("update-available", (info) => {
+    if (Notification) {
+      new Notification({ title: APP_NAME + " 发现新版本 v" + info.version, body: "正在后台下载，完成后将提示安装…" }).show()
+    }
+  })
+  autoUpdater.once("update-not-available", () => {
+    if (!silent) dialog.showMessageBox(mainWindow, { type: "info", title: "检查更新", message: "当前已是最新版本 v" + VERSION, buttons: ["确定"] })
+  })
+  autoUpdater.once("update-downloaded", (info) => {
+    dialog.showMessageBox(mainWindow, {
+      type: "info", title: "更新已下载",
+      message: "新版本 v" + info.version + " 已准备就绪",
+      detail: "点击「安装并重启」立即更新，或关闭后下次启动时自动安装。",
+      buttons: ["安装并重启", "稍后"],
+    }).then((r) => {
+      if (r.response === 0) autoUpdater.quitAndInstall()
+    })
+  })
+  autoUpdater.once("error", (err) => {
+    if (!silent) console.warn("[autoUpdater] 检查失败:", err && err.message)
+  })
+  autoUpdater.checkForUpdates()
+}
 
 app.on("window-all-closed", () => {
   // 不退出应用：窗口关闭时驻留托盘（macOS 行为一致）

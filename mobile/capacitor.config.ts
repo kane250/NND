@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from "@capacitor/cli"
 
 const config: CapacitorConfig = {
-  appId: "com.kane.newsnow",
-  appName: "NewsNow",
+  appId: "com.kane.nnd",
+  appName: "NND",
   webDir: "www",
   backgroundColor: "#0f0f0f",
   android: {

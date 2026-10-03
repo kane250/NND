@@ -9,98 +9,44 @@
   body {
     background: #1a1a1e; color: #e6e6e6;
     font: 14px/1.6 -apple-system, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
-    padding: 24px 24px 20px;
-    user-select: none;
+    padding: 24px 24px 20px; user-select: none;
   }
-  h1 {
-    font-size: 17px; font-weight: 600; margin-bottom: 20px;
-    padding-bottom: 12px; border-bottom: 1px solid #2e2e34;
-  }
-
-  /* —— 设置项卡片 —— */
-  .setting-item {
-    padding: 14px 16px;
-    margin-bottom: 10px;
-    background: #222228;
-    border: 1px solid #2e2e34;
-    border-radius: 10px;
-    transition: border-color .15s;
-  }
+  h1 { font-size: 17px; font-weight: 600; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #2e2e34; }
+  .setting-item { padding: 14px 16px; margin-bottom: 10px; background: #222228; border: 1px solid #2e2e34; border-radius: 10px; transition: border-color .15s; }
   .setting-item:hover { border-color: #3a3a44; }
-
-  /* —— 开关行（文字 + toggle 左右分离） —— */
-  .toggle-row {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 16px;
-  }
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
   .toggle-label { flex: 1; min-width: 0; }
   .toggle-label .name { font-weight: 500; font-size: 14px; }
   .toggle-label .desc { font-size: 12px; opacity: .55; margin-top: 2px; }
-
-  /* —— Toggle 开关 —— */
   .toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
   .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
-  .slider {
-    position: absolute; inset: 0;
-    background: #3a3a40; border-radius: 24px;
-    transition: background .2s;
-    cursor: pointer;
-  }
-  .slider::before {
-    content: ""; position: absolute;
-    width: 18px; height: 18px; left: 3px; top: 3px;
-    background: #fff; border-radius: 50%;
-    transition: transform .2s;
-  }
+  .slider { position: absolute; inset: 0; background: #3a3a40; border-radius: 24px; transition: background .2s; cursor: pointer; }
+  .slider::before { content: ""; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform .2s; }
   .toggle input:checked + .slider { background: #6c8cff; }
   .toggle input:checked + .slider::before { transform: translateX(20px); }
   .toggle input:focus-visible + .slider { outline: 2px solid #6c8cff80; outline-offset: 2px; }
-
-  /* —— 单选组（刷新间隔） —— */
-  .radio-group {
-    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;
-  }
-  .radio-group label {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 8px 14px;
-    border: 1px solid #3a3a40; border-radius: 8px;
-    cursor: pointer; font-size: 13px;
-    transition: all .15s;
-    background: #1e1e24;
-  }
+  .radio-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .radio-group label { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border: 1px solid #3a3a40; border-radius: 8px; cursor: pointer; font-size: 13px; transition: all .15s; background: #1e1e24; }
   .radio-group label:hover { border-color: #4a4a54; background: #26262e; }
-  .radio-group label:has(input:checked) {
-    border-color: #6c8cff; background: #23233c; color: #fff;
-  }
+  .radio-group label:has(input:checked) { border-color: #6c8cff; background: #23233c; color: #fff; }
   .radio-group input { accent-color: #6c8cff; display: none; }
-  .radio-group label:has(input:checked)::before {
-    content: ""; width: 6px; height: 6px; border-radius: 50%;
-    background: #6c8cff; display: inline-block;
-  }
-
-  /* —— 按钮 —— */
-  .actions {
-    display: flex; justify-content: flex-end; gap: 10px;
-    margin-top: 20px; padding-top: 16px;
-    border-top: 1px solid #2e2e34;
-  }
-  button {
-    padding: 9px 22px; border-radius: 8px;
-    border: 1px solid #3a3a40; background: #26262c;
-    color: #e6e6e6; cursor: pointer; font-size: 14px;
-    transition: all .15s;
-  }
+  .radio-group label:has(input:checked)::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #6c8cff; display: inline-block; }
+  .range-row { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+  .range-row input[type="range"] { flex: 1; accent-color: #6c8cff; cursor: pointer; }
+  .range-row .value { font-size: 13px; opacity: .7; min-width: 48px; text-align: right; font-variant-numeric: tabular-nums; }
+  .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #2e2e34; }
+  button { padding: 9px 22px; border-radius: 8px; border: 1px solid #3a3a40; background: #26262c; color: #e6e6e6; cursor: pointer; font-size: 14px; transition: all .15s; }
   button:hover { background: #32323a; border-color: #4a4a54; }
   button:active { background: #2c2c34; }
-  button.primary {
-    background: #6c8cff; border-color: #6c8cff;
-    color: #12121a; font-weight: 600;
-  }
+  button.primary { background: #6c8cff; border-color: #6c8cff; color: #12121a; font-weight: 600; }
   button.primary:hover { background: #7d99ff; }
+  .section-title { font-size: 12px; font-weight: 600; opacity: .5; text-transform: uppercase; letter-spacing: .5px; margin: 16px 0 8px 4px; }
 </style>
 </head>
 <body>
   <h1>设置</h1>
+
+  <div class="section-title">常规</div>
 
   <div class="setting-item">
     <div class="toggle-row">
@@ -108,10 +54,7 @@
         <div class="name">自动刷新</div>
         <div class="desc">按设定间隔自动刷新所有已加载的新闻源</div>
       </div>
-      <label class="toggle">
-        <input type="checkbox" id="autoRefresh">
-        <span class="slider"></span>
-      </label>
+      <label class="toggle"><input type="checkbox" id="autoRefresh"><span class="slider"></span></label>
     </div>
   </div>
 
@@ -135,10 +78,44 @@
         <div class="name">内置阅读器</div>
         <div class="desc">点击新闻在程序内部阅读器打开；关闭则用系统浏览器打开</div>
       </div>
-      <label class="toggle">
-        <input type="checkbox" id="viewerInApp">
-        <span class="slider"></span>
-      </label>
+      <label class="toggle"><input type="checkbox" id="viewerInApp"><span class="slider"></span></label>
+    </div>
+  </div>
+
+  <div class="section-title">外观</div>
+
+  <div class="setting-item">
+    <div class="toggle-label">
+      <div class="name">主题</div>
+      <div class="desc">浅色或深色外观</div>
+    </div>
+    <div class="radio-group" id="themes">
+      <label><input type="radio" name="theme" value="dark">深色</label>
+      <label><input type="radio" name="theme" value="light">浅色</label>
+    </div>
+  </div>
+
+  <div class="section-title">阅读优化</div>
+
+  <div class="setting-item">
+    <div class="toggle-label">
+      <div class="name">字体大小</div>
+      <div class="desc">阅读器中文章正文的字体大小</div>
+    </div>
+    <div class="range-row">
+      <input type="range" id="readerFontSize" min="12" max="22" step="1" value="16">
+      <span class="value" id="readerFontSizeVal">16 px</span>
+    </div>
+  </div>
+
+  <div class="setting-item">
+    <div class="toggle-label">
+      <div class="name">行距</div>
+      <div class="desc">文章正文的行间距倍数</div>
+    </div>
+    <div class="range-row">
+      <input type="range" id="readerLineHeight" min="1.4" max="2.4" step="0.1" value="1.8">
+      <span class="value" id="readerLineHeightVal">1.8</span>
     </div>
   </div>
 
@@ -156,14 +133,39 @@
     document.querySelectorAll('input[name="interval"]').forEach((r) => {
       r.checked = Number(r.value) === cfg.intervalMinutes
     })
+    // 主题
+    const theme = cfg.theme || "dark"
+    document.querySelectorAll('input[name="theme"]').forEach((r) => {
+      r.checked = r.value === theme
+    })
+    // 阅读优化
+    const fontSize = cfg.readerFontSize || 16
+    const lineHeight = cfg.readerLineHeight || 1.8
+    $("readerFontSize").value = fontSize
+    $("readerFontSizeVal").textContent = fontSize + " px"
+    $("readerLineHeight").value = lineHeight
+    $("readerLineHeightVal").textContent = lineHeight
+    // 实时更新数值显示
+    $("readerFontSize").addEventListener("input", (e) => {
+      $("readerFontSizeVal").textContent = e.target.value + " px"
+    })
+    $("readerLineHeight").addEventListener("input", (e) => {
+      $("readerLineHeightVal").textContent = Number(e.target.value).toFixed(1)
+    })
   })()
 
   $("save").addEventListener("click", async () => {
     const interval = Number(document.querySelector('input[name="interval"]:checked')?.value || 10)
+    const theme = document.querySelector('input[name="theme"]:checked')?.value || "dark"
+    const fontSize = Number($("readerFontSize").value)
+    const lineHeight = Number($("readerLineHeight").value)
     await window.settings.save({
       autoRefresh: $("autoRefresh").checked,
       intervalMinutes: interval,
       viewerInApp: $("viewerInApp").checked,
+      theme: theme,
+      readerFontSize: fontSize,
+      readerLineHeight: lineHeight,
     })
     await window.settings.close()
   })
