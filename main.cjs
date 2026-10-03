@@ -4,7 +4,8 @@ const { app, BrowserWindow, WebContentsView, Menu, ipcMain, shell, dialog, proto
 const path = require("node:path")
 const fs = require("node:fs")
 const { mergeBookmarks, mergeHistory, mergeRssFeeds, applyImportedSettings } = require("./merge-data.cjs")
-const { generateOpml } = require("./opml.cjs")
+const { generateOpml, parseOpml, normalizeUrl } = require("./opml.cjs")
+const { fetchRssFeed } = require("./rss-feed.cjs")
 
 // 自动更新（仅打包后生效，开发模式跳过）
 let autoUpdater = null
@@ -18,7 +19,7 @@ const VIEWER_PRELOAD = path.join(APP_DIR, "viewer-preload.cjs")
 const SETTINGS_HTML = path.join(APP_DIR, "settings.html")
 const SETTINGS_PRELOAD = path.join(APP_DIR, "settings-preload.cjs")
 
-const VERSION = "2.6.1"
+const VERSION = "2.6.2"
 const BUILD_DATE = "2026-10-03"
 const APP_NAME = "NND"
 const APP_FULL_NAME = "NewsNow Desktop"
@@ -150,39 +151,6 @@ function jsonResponse(obj, status = 200) {
 }
 
 // ---------- 通用 RSS/Atom Feed 解析器 ----------
-async function fetchRssFeed(feed) {
-  const res = await fetch(feed.url, {
-    headers: { "User-Agent": "NND/2.1 RSS Reader" },
-    signal: AbortSignal.timeout(15000),
-  })
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const text = await res.text()
-  const items = []
-  // 简易 XML 解析（不依赖 DOMParser，用正则提取 item/entry）
-  const itemRe = /<(?:item|entry)>([\s\S]*?)<\/(?:item|entry)>/gi
-  let m
-  while ((m = itemRe.exec(text)) !== null && items.length < 30) {
-    const block = m[1]
-    const title = block.match(/<title[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/i)?.[1]?.trim() || ""
-    const link = block.match(/<link[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/link>/i)?.[1]?.trim()
-      || block.match(/<link[^>]*href="([^"]+)"/i)?.[1]?.trim() || ""
-    const pubDate = block.match(/<(?:pubDate|published|updated)[^>]*>([\s\S]*?)<\/(?:pubDate|published|updated)>/i)?.[1]?.trim() || ""
-    const desc = block.match(/<(?:description|summary|content)[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/(?:description|summary|content)>/i)?.[1]?.trim() || ""
-    if (title && link) {
-      items.push({
-        id: link,
-        title: title.replace(/<[^>]+>/g, ""),
-        url: link,
-        mobileUrl: link,
-        hot: 0,
-        pubDate: pubDate ? new Date(pubDate).getTime() || Date.now() : Date.now(),
-        description: desc.replace(/<[^>]+>/g, "").slice(0, 200),
-      })
-    }
-  }
-  return items
-}
-
 // ---------- 内容智能工具函数 ----------
 
 // 标题相似度去重：同一批次内标题相似度 > 0.8 的合并（保留热度更高的）
@@ -1325,6 +1293,118 @@ ipcMain.handle("settings:export-opml", async () => {
     }
   } catch (e) {
     console.error("OPML 导出失败:", e)
+    return { ok: false, error: String(e && e.message ? e.message : e) }
+  }
+})
+
+// 订阅列表导入（OPML）：解析 → 重复检查 → 逐源验证 → 添加为自定义 RSS 源
+ipcMain.handle("settings:import-opml", async () => {
+  try {
+    const dialogParent = settingsWindow && !settingsWindow.isDestroyed() ? settingsWindow : undefined
+    const result = await dialog.showOpenDialog(dialogParent, {
+      title: "导入订阅列表（OPML）",
+      filters: [{ name: "OPML 订阅列表", extensions: ["opml", "xml"] }],
+      properties: ["openFile"],
+    })
+    if (result.canceled || !result.filePaths.length) return { ok: false, canceled: true }
+    let xml
+    try {
+      xml = fs.readFileSync(result.filePaths[0], "utf8")
+    } catch (e) {
+      return { ok: false, error: "文件读取失败: " + (e.message || e) }
+    }
+
+    // 1) 解析
+    let parsed
+    try {
+      parsed = parseOpml(xml)
+    } catch (e) {
+      return { ok: false, error: String(e.message || e) }
+    }
+    if (!parsed.feeds.length) {
+      return { ok: false, error: "OPML 中没有可导入的订阅（未找到含 xmlUrl 的源）" }
+    }
+
+    // 2) 重复检查：与内置源 / 现有自定义源对比
+    const builtinRssUrls = new Set()
+    if (dataLayer) {
+      for (const meta of Object.values(dataLayer.sources)) {
+        if (meta._rss) builtinRssUrls.add(normalizeUrl(meta._rss))
+      }
+    }
+    const existingUrls = new Set(
+      (Array.isArray(config.rssFeeds) ? config.rssFeeds : [])
+        .map((f) => normalizeUrl(f && f.url))
+        .filter(Boolean),
+    )
+    let builtinDup = 0
+    let existingDup = 0
+    const candidates = []
+    for (const feed of parsed.feeds) {
+      const key = normalizeUrl(feed.xmlUrl)
+      if (builtinRssUrls.has(key)) { builtinDup++; continue }
+      if (existingUrls.has(key)) { existingDup++; continue }
+      candidates.push(feed)
+    }
+
+    // 3) 逐源验证（并发 8，复用自定义源抓取逻辑：能抓到内容才算有效）
+    const sendProgress = (done, current) => {
+      if (settingsWindow && !settingsWindow.isDestroyed()) {
+        try {
+          settingsWindow.webContents.send("import-opml-progress", { done, total: candidates.length, current })
+        } catch (_) {}
+      }
+    }
+    const validateFeed = async (feed) => {
+      try {
+        const items = await fetchRssFeed({ url: feed.xmlUrl })
+        return items && items.length ? { feed, ok: true } : { feed, ok: false, error: "未解析出内容" }
+      } catch (e) {
+        return { feed, ok: false, error: String(e && e.message ? e.message : e) }
+      }
+    }
+    const validated = []
+    const CONCURRENCY = 8
+    let cursor = 0
+    let doneCount = 0
+    sendProgress(0, "")
+    const worker = async () => {
+      while (cursor < candidates.length) {
+        const feed = candidates[cursor++]
+        doneCount++
+        sendProgress(doneCount, feed.xmlUrl)
+        validated.push(await validateFeed(feed))
+      }
+    }
+    await Promise.all(
+      Array.from({ length: Math.min(CONCURRENCY, candidates.length) }, worker),
+    )
+    sendProgress(candidates.length, "")
+
+    // 4) 添加验证通过的源（mergeRssFeeds 按去重兜底；字段映射 xmlUrl -> url）
+    const validFeeds = validated
+      .filter((v) => v.ok)
+      .map((v) => ({ name: v.feed.name, url: v.feed.xmlUrl }))
+    const invalid = validated
+      .filter((v) => !v.ok)
+      .map((v) => ({ name: v.feed.name, url: v.feed.xmlUrl, error: v.error }))
+    const rs = mergeRssFeeds(config.rssFeeds, validFeeds)
+    if (rs.added) config.rssFeeds = rs.merged
+    saveConfig()
+
+    return {
+      ok: true,
+      stats: {
+        total: parsed.feeds.length,
+        imported: rs.added,
+        builtinDup,
+        existingDup,
+        inFileDup: parsed.duplicatesInFile,
+        invalid,
+      },
+    }
+  } catch (e) {
+    console.error("OPML 导入失败:", e)
     return { ok: false, error: String(e && e.message ? e.message : e) }
   }
 })

@@ -272,6 +272,90 @@ await test("OPML 全量导出包含全部 85 个内置源", async () => {
   if (missing.length) throw new Error(`OPML 缺少源: ${missing.slice(0, 5).join(",")}`)
 })
 
+// ========== 9. OPML 导入解析（v2.6.2） ==========
+console.log("\n=== 9. OPML 导入解析 ===")
+await test("parseOpml 标准结构（嵌套分组 + 自闭合标签）", () => {
+  const xml = `<?xml version="1.0"?>
+  <opml version="2.0"><head><title>测试</title></head><body>
+    <outline text="科技">
+      <outline type="rss" text="源A" xmlUrl="https://a.com/feed" htmlUrl="https://a.com"/>
+      <outline type="rss" text="源B" xmlUrl="https://b.com/feed"/>
+    </outline>
+  </body></opml>`
+  const r = opml.parseOpml(xml)
+  if (r.title !== "测试") throw new Error("标题解析错误")
+  if (r.feeds.length !== 2) throw new Error(`应解析 2 个源，实际 ${r.feeds.length}`)
+  if (r.feeds[0].name !== "源A") throw new Error("名称解析错误")
+  if (r.feeds[0].htmlUrl !== "https://a.com") throw new Error("htmlUrl 解析错误")
+})
+await test("parseOpml 过滤无 xmlUrl 节点（分组/链接节点）", () => {
+  const xml = `<opml version="2.0"><body>
+    <outline text="科技">
+      <outline text="API源 无RSS" htmlUrl="https://x.com"/>
+      <outline text="真源" xmlUrl="https://y.com/feed"/>
+    </outline>
+    <outline text="纯链接" htmlUrl="https://z.com"/>
+  </body></opml>`
+  const r = opml.parseOpml(xml)
+  if (r.feeds.length !== 1 || r.feeds[0].xmlUrl !== "https://y.com/feed") throw new Error("应只解析 1 个含 xmlUrl 的源")
+})
+await test("parseOpml 实体解码", () => {
+  const xml = `<opml version="2.0"><body>
+    <outline text="A&amp;B&lt;测试&gt;" xmlUrl="https://x.com/f?n=1&amp;m=2"/>
+  </body></opml>`
+  const r = opml.parseOpml(xml)
+  if (r.feeds[0].name !== "A&B<测试>") throw new Error("名称实体解码失败: " + r.feeds[0].name)
+  if (r.feeds[0].xmlUrl !== "https://x.com/f?n=1&m=2") throw new Error("URL 实体解码失败")
+})
+await test("parseOpml 文件内去重（尾斜杠规范化）", () => {
+  const xml = `<opml version="2.0"><body>
+    <outline text="源一" xmlUrl="https://a.com/feed/"/>
+    <outline text="源二" xmlUrl="https://a.com/feed"/>
+    <outline text="源三" xmlUrl="https://b.com/feed"/>
+  </body></opml>`
+  const r = opml.parseOpml(xml)
+  if (r.feeds.length !== 2) throw new Error(`去重后应 2 个，实际 ${r.feeds.length}`)
+  if (r.duplicatesInFile !== 1) throw new Error("文件内重复计数错误")
+  if (r.feeds[0].name !== "源一") throw new Error("去重应保留首个")
+})
+await test("parseOpml 非法输入报错", () => {
+  const cases = ["", "   ", "<html>不是OPML</html>", "<opml version=\"2.0\"><head></head></opml>"]
+  for (const c of cases) {
+    let threw = false
+    try { opml.parseOpml(c) } catch (_) { threw = true }
+    if (!threw) throw new Error(`应报错: ${JSON.stringify(c.slice(0, 20))}`)
+  }
+})
+await test("OPML 往返：导出 85 源再解析，39 个 RSS 可导入", async () => {
+  const api = await import(join(ROOT, "data-layer.mjs"))
+  const xml = opml.generateOpml(api.sources, [{ id: "c1", name: "自定义源", url: "https://custom.example/feed" }])
+  const parsed = opml.parseOpml(xml)
+  const builtinRss = Object.values(api.sources).filter((m) => m._rss).length
+  if (parsed.feeds.length !== builtinRss + 1) throw new Error(`应解析 ${builtinRss + 1} 个（39 内置 RSS + 1 自定义），实际 ${parsed.feeds.length}`)
+  const names = new Set(parsed.feeds.map((f) => f.name))
+  if (!names.has("自定义源")) throw new Error("自定义源丢失")
+  if (!names.has("36氪 热榜")) throw new Error("内置 RSS 源丢失")
+})
+await test("导入去重：normalizeUrl 规范化对比", () => {
+  // 与主进程 settings:import-opml 的重复检查逻辑一致
+  const normalizeUrl = opml.normalizeUrl
+  const builtin = new Set(["https://rsshub.rssforever.com/36kr/hot-list"].map(normalizeUrl))
+  const existing = new Set([normalizeUrl("https://mine.com/feed")])
+  const incoming = [
+    "https://rsshub.rssforever.com/36kr/hot-list/", // 尾斜杠 → 内置重复
+    "https://mine.com/feed",                          // 完全一致 → 已有重复
+    "https://new.com/feed",                           // 新源
+  ]
+  let builtinDup = 0, existingDup = 0, fresh = 0
+  for (const u of incoming) {
+    const k = normalizeUrl(u)
+    if (builtin.has(k)) { builtinDup++; continue }
+    if (existing.has(k)) { existingDup++; continue }
+    fresh++
+  }
+  if (builtinDup !== 1 || existingDup !== 1 || fresh !== 1) throw new Error(`重复检查计数错误: ${builtinDup}/${existingDup}/${fresh}`)
+})
+
 // ========== 汇总 ==========
 console.log("\n" + "=".repeat(50))
 console.log(`测试结果: ${passed} 通过, ${failed} 失败`)

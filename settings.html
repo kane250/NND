@@ -146,6 +146,7 @@
     </div>
     <div style="display:flex;gap:8px;margin-top:8px;">
       <button id="btnExportOpml" style="flex:1;">导出订阅列表（OPML）…</button>
+      <button id="btnImportOpml" style="flex:1;">导入订阅（OPML）…</button>
     </div>
   </div>
 
@@ -231,6 +232,38 @@
       status.textContent = "已取消导出"
     } else {
       status.textContent = "✗ 导出失败：" + (r.error || "未知错误")
+    }
+  })
+
+  // 订阅列表导入（OPML）：验证 + 去重，进度实时显示
+  window.settings.onImportOpmlProgress((p) => {
+    if (p.total > 0 && p.done < p.total) {
+      $("ioStatus").textContent = "正在验证订阅源（" + p.done + "/" + p.total + "）…" + (p.current ? " " + (p.current || "").slice(0, 46) : "")
+    }
+  })
+  $("btnImportOpml").addEventListener("click", async () => {
+    const status = $("ioStatus")
+    status.textContent = "正在选择文件…"
+    const r = await window.settings.importOpml()
+    if (r.ok) {
+      const s = r.stats
+      const parts = ["新增 " + s.imported + " 个源"]
+      if (s.builtinDup) parts.push("跳过与内置源重复 " + s.builtinDup)
+      if (s.existingDup) parts.push("跳过已有自定义源 " + s.existingDup)
+      if (s.inFileDup) parts.push("文件内重复 " + s.inFileDup)
+      const invalidCount = s.invalid ? s.invalid.length : 0
+      if (invalidCount) parts.push("验证失败 " + invalidCount)
+      let msg = "✓ OPML 导入完成（共 " + s.total + " 项）：" + parts.join("，")
+      if (invalidCount && s.invalid) {
+        msg += "\n验证失败列表：" + s.invalid.slice(0, 5).map(v => v.name + "（" + (v.error || "") + "）").join("；")
+      }
+      status.textContent = msg
+      status.title = msg
+      await loadRssFeeds() // 刷新自定义源列表显示
+    } else if (r.canceled) {
+      status.textContent = "已取消导入"
+    } else {
+      status.textContent = "✗ 导入失败：" + (r.error || "未知错误")
     }
   })
 

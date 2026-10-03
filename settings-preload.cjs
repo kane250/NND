@@ -9,4 +9,10 @@ contextBridge.exposeInMainWorld("settings", {
   exportData: () => ipcRenderer.invoke("settings:export"),
   exportOpml: () => ipcRenderer.invoke("settings:export-opml"),
   importData: () => ipcRenderer.invoke("settings:import"),
+  importOpml: () => ipcRenderer.invoke("settings:import-opml"),
+  onImportOpmlProgress: (cb) => {
+    const listener = (_e, p) => cb(p)
+    ipcRenderer.on("import-opml-progress", listener)
+    return () => ipcRenderer.removeListener("import-opml-progress", listener)
+  },
 })
