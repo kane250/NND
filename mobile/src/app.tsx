@@ -1,177 +1,143 @@
 /**
- * 移动端 NewsNow 前端入口
- * 复用原 NewsNow 的 React 前端 UI，但数据层改为直接调用本地 getter（无需后端）
- *
- * 构建方式：
- * 1. build-web.mjs 从原 NewsNow 项目构建前端静态资源
- * 2. 注入本模块作为数据层替代
- * 3. 输出到 mobile/www/ 供 Capacitor 加载
+ * NND 移动端 v3.0 —— 主框架
+ * 页面结构：底部导航（首页 / 我的 / 书签 / 设置）+ 顶部栏目 chips + 搜索
+ * 数据层：直接调用本地 getter / rss2json（无需后端）
  */
 
-import React, { useState, useEffect, useCallback, useRef } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { createRoot } from "react-dom/client"
-import { sources } from "./types"
-import { getSourceData, getEntireData } from "./api"
-import type { NewsItem, SourceResponse, SourceID } from "./types"
+import { getThemeMode, setThemeMode, getStarredSources, type ThemeMode } from "./storage"
+import { setStatusBar, showToast } from "./mobile-utils"
+import { HomePage, CATEGORIES, type CategoryId } from "./components/HomePage"
+import { MinePage } from "./components/MinePage"
+import { SavesPage } from "./components/SavesPage"
+import { SearchPage } from "./components/SearchPage"
+import { SettingsPage } from "./components/SettingsPage"
 
-// ---------- 简单的缓存与状态管理 ----------
-const cacheSources = new Map<SourceID, SourceResponse>()
+type TabId = "home" | "mine" | "saves" | "settings"
+
+const TABS: Array<{ id: TabId; name: string; icon: string }> = [
+  { id: "home", name: "首页", icon: "🏠" },
+  { id: "mine", name: "我的", icon: "★" },
+  { id: "saves", name: "书签", icon: "🔖" },
+  { id: "settings", name: "设置", icon: "⚙" },
+]
+
+// ---------- 主题应用 ----------
+
+function applyTheme(mode: ThemeMode) {
+  const prefersLight = typeof matchMedia !== "undefined" && matchMedia("(prefers-color-scheme: light)").matches
+  const dark = mode === "dark" || (mode === "system" && !prefersLight)
+  document.documentElement.classList.toggle("dark", dark)
+  document.documentElement.classList.toggle("light", !dark)
+  setStatusBar(dark ? "#0f0f0f" : "#f7f7f8", !dark)
+}
 
 // ---------- 主组件 ----------
+
 function App() {
-  const [columnId, setColumnId] = useState<string>("hottest")
-  const [sourceIds, setSourceIds] = useState<SourceID[]>([])
+  const [tab, setTab] = useState<TabId>("home")
+  const [categoryId, setCategoryId] = useState<CategoryId>("hottest")
   const [refreshTrigger, setRefreshTrigger] = useState(0)
+  const [starred, setStarred] = useState<string[]>([])
+  const [showSearch, setShowSearch] = useState(false)
+  const [theme, setTheme] = useState<ThemeMode>("system")
 
-  // 根据栏目获取源列表
+  // 初始化：主题 + 星标 + 系统主题跟随
   useEffect(() => {
-    const ids = Object.entries(sources)
-      .filter(([id, meta]) => {
-        if (meta.disable) return false
-        if (meta.redirect) return false
-        if (columnId === "hottest") return meta.type === "hottest"
-        if (columnId === "realtime") return meta.type === "realtime"
-        return false
-      })
-      .map(([id]) => id)
-      .slice(0, 20) // 移动端只显示前 20 个源
-    setSourceIds(ids)
-  }, [columnId])
+    getThemeMode().then((m) => {
+      setTheme(m)
+      applyTheme(m)
+    })
+    getStarredSources().then(setStarred)
+    const mq = typeof matchMedia !== "undefined" ? matchMedia("(prefers-color-scheme: light)") : null
+    const listener = () => getThemeMode().then(applyTheme)
+    mq?.addEventListener?.("change", listener)
+    return () => mq?.removeEventListener?.("change", listener)
+  }, [])
 
-  return (
-    <div className="app">
-      <Header
-        columnId={columnId}
-        onColumnChange={setColumnId}
-        onRefreshAll={() => setRefreshTrigger((r) => r + 1)}
-      />
-      <div className="columns">
-        {sourceIds.map((id) => (
-          <NewsCard key={id} id={id} refreshTrigger={refreshTrigger} />
-        ))}
-      </div>
-    </div>
-  )
-}
+  const changeTheme = useCallback(async (m: ThemeMode) => {
+    setTheme(m)
+    await setThemeMode(m)
+    applyTheme(m)
+  }, [])
 
-// ---------- 头部导航 ----------
-function Header({ columnId, onColumnChange, onRefreshAll }: { columnId: string; onColumnChange: (id: string) => void; onRefreshAll: () => void }) {
-  const columns = [
-    { id: "hottest", name: "最热" },
-    { id: "realtime", name: "实时" },
-  ]
-  return (
-    <header className="header">
-      <div className="header-left">
-        <span className="logo">NewsNow</span>
-      </div>
-      <nav className="nav">
-        {columns.map((c) => (
-          <button
-            key={c.id}
-            className={`nav-item ${columnId === c.id ? "active" : ""}`}
-            onClick={() => onColumnChange(c.id)}
-          >
-            {c.name}
-          </button>
-        ))}
-      </nav>
-      <button className="refresh-all" onClick={onRefreshAll}>
-        刷新全部
-      </button>
-    </header>
-  )
-}
+  const switchTab = (id: TabId) => {
+    setTab(id)
+    window.scrollTo({ top: 0 })
+  }
 
-// ---------- 新闻源卡片 ----------
-function NewsCard({ id, refreshTrigger }: { id: SourceID; refreshTrigger: number }) {
-  const [data, setData] = useState<SourceResponse | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const meta = sources[id]
-
-  const fetchData = useCallback(async (force = false) => {
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await getSourceData(id, force)
-      cacheSources.set(id, res)
-      setData(res)
-    } catch (e: any) {
-      setError(e?.message || "获取失败")
-    } finally {
-      setLoading(false)
-    }
-  }, [id])
-
-  useEffect(() => {
-    fetchData()
-  }, [fetchData, refreshTrigger])
-
-  return (
-    <div className="card" style={{ borderColor: `var(--color-${meta.color}, #666)` }}>
-      <div className="card-header">
-        <div className="card-title">
-          <span className="card-name">{meta.name}</span>
-          {meta.title && <span className="card-subtitle">{meta.title}</span>}
-        </div>
-        <div className="card-actions">
-          <button
-            className={`card-refresh ${loading ? "spinning" : ""}`}
-            onClick={() => fetchData(true)}
-            disabled={loading}
-          >
-            ↻
-          </button>
-        </div>
-      </div>
-      <div className="card-body">
-        {loading && !data && <div className="loading">加载中...</div>}
-        {error && !data && <div className="error">{error}</div>}
-        {data && data.items.length > 0 && (
-          <NewsList items={data.items} type={meta.type} />
-        )}
-      </div>
-    </div>
-  )
-}
-
-// ---------- 新闻列表 ----------
-function NewsList({ items, type }: { items: NewsItem[]; type?: string }) {
-  return (
-    <ol className="news-list">
-      {items.map((item, i) => (
-        <NewsListItem key={`${item.id}-${i}`} item={item} index={i} type={type} />
-      ))}
-    </ol>
-  )
-}
-
-function NewsListItem({ item, index, type }: { item: NewsItem; index: number; type?: string }) {
-  const url = item.mobileUrl || item.url
-  const openNews = (e: React.MouseEvent) => {
-    e.preventDefault()
-    // 在 Capacitor 中用 InAppBrowser 或系统浏览器打开
-    if (typeof window !== "undefined" && (window as any).capacitor?.isNativePlatform?.()) {
-      // 原生平台：用系统浏览器打开
-      window.open(url, "_system")
-    } else {
-      window.open(url, "_blank")
-    }
+  const refreshAll = () => {
+    setRefreshTrigger((r) => r + 1)
+    showToast("已刷新全部源")
   }
 
   return (
-    <li className="news-item">
-      {type === "hottest" && <span className="news-rank">{index + 1}</span>}
-      <a href={url} onClick={openNews} className="news-link">
-        <span className="news-title">{item.title}</span>
-        {item.extra?.info && <span className="news-info">{item.extra.info}</span>}
-      </a>
-    </li>
+    <div className="app">
+      {/* 顶部 Header */}
+      <header className="header">
+        <div className="logo">NND</div>
+        {tab === "home" && (
+          <>
+            <div className="category-chips">
+              {CATEGORIES.map((c) => (
+                <button
+                  key={c.id}
+                  className={"chip" + (categoryId === c.id ? " active" : "")}
+                  onClick={() => setCategoryId(c.id)}
+                >
+                  {c.name}
+                </button>
+              ))}
+            </div>
+            <div className="header-actions">
+              <button className="icon-btn" title="搜索" onClick={() => setShowSearch(true)}>
+                🔍
+              </button>
+              <button className="icon-btn" title="刷新全部" onClick={refreshAll}>
+                ⟳
+              </button>
+            </div>
+          </>
+        )}
+        {tab !== "home" && <div className="header-title">{TABS.find((t) => t.id === tab)?.name}</div>}
+      </header>
+
+      {/* 页面主体 */}
+      <main className="main">
+        {tab === "home" && (
+          <HomePage
+            categoryId={categoryId}
+            refreshTrigger={refreshTrigger}
+            starred={starred}
+            onStarredChange={setStarred}
+          />
+        )}
+        {tab === "mine" && <MinePage refreshTrigger={refreshTrigger} starred={starred} onStarredChange={setStarred} />}
+        {tab === "saves" && <SavesPage />}
+        {tab === "settings" && (
+          <SettingsPage theme={theme} onThemeChange={changeTheme} refreshCards={() => setRefreshTrigger((r) => r + 1)} />
+        )}
+      </main>
+
+      {/* 搜索浮层 */}
+      {showSearch && <SearchPage onClose={() => setShowSearch(false)} starredIds={starred} />}
+
+      {/* 底部导航 */}
+      <nav className="tabbar">
+        {TABS.map((t) => (
+          <button key={t.id} className={"tabbar-item" + (tab === t.id ? " active" : "")} onClick={() => switchTab(t.id)}>
+            <span className="tabbar-icon">{t.icon}</span>
+            <span className="tabbar-name">{t.name}</span>
+          </button>
+        ))}
+      </nav>
+    </div>
   )
 }
 
 // ---------- 启动 ----------
+
 const rootElement = document.getElementById("app")
 if (rootElement) {
   createRoot(rootElement).render(<App />)

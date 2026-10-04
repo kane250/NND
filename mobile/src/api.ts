@@ -70,6 +70,33 @@ export async function getSourceData(id: SourceID, force = false): Promise<Source
 /**
  * 批量获取多个源的缓存数据（对应原 /api/s/entire）
  */
+/**
+ * 自定义 RSS 源数据获取（带缓存，key 为 feed.id）
+ */
+export async function getCustomFeedData(
+  feed: { id: string; name: string; url: string },
+  force = false
+): Promise<SourceResponse> {
+  if (!force) {
+    const cached = await getCache(feed.id as SourceID)
+    if (cached && Date.now() - cached.updated < 10 * 60 * 1000) {
+      return { status: "cache", id: feed.id as SourceID, updatedTime: cached.updated, items: cached.items }
+    }
+  }
+  const { rss2json } = await import("./rss")
+  const data = await rss2json(feed.url)
+  const items = ((data?.items || []) as any[]).map((it) => ({
+    id: it.link || feed.url,
+    url: it.link || feed.url,
+    title: it.title || "",
+    mobileUrl: it.link,
+    hot: 0,
+    extra: { info: feed.name, date: it.created ? new Date(it.created).getTime() : Date.now() },
+  })).slice(0, 30)
+  if (items.length) await setCache(feed.id as SourceID, items as any)
+  return { status: "success", id: feed.id as SourceID, updatedTime: Date.now(), items }
+}
+
 export async function getEntireData(ids: SourceID[]): Promise<SourceResponse[]> {
   const results: SourceResponse[] = []
   for (const id of ids) {

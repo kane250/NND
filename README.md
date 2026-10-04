@@ -4,7 +4,7 @@
 
 由 [TeleAgent](https://github.com/kane250) 打包发布，致敬原项目 [NewsNow](https://github.com/newsnext/newsnow)。
 
-当前版本：**v2.6.4**
+当前版本：**v3.0.0**
 
 ---
 
@@ -62,9 +62,22 @@
 | `NND-x.x.x-amd64.deb` | Debian/Ubuntu 安装包 |
 | `NND-x.x.x-x86_64.pkg.tar.zst` | Arch/Manjaro 安装包（`sudo pacman -U`），依赖均为官方仓库名 |
 
+### 移动端（v3.0.0 全量对齐桌面）
+
+- **分类浏览**：最热/实时/科技/国内/国际/财经/体育七栏目，85 个内置源全量可达（不再截断 20 个）
+- **星标订阅**：源卡片 ☆ 一键订阅，「我的」页集中显示
+- **书签 + 历史自动记录**：点开文章自动记历史（上限 200 条），条目菜单可收藏/分享
+- **文章阅读**：原生内嵌浏览器（@capacitor/browser），阅读记录自动保存
+- **主题切换**：跟随系统 / 深色 / 浅色（StatusBar 联动）
+- **自定义 RSS 源**：设置中添加/删除，与内置源同屏显示与抓取
+- **OPML 导入导出**：与桌面版完全互通（同套生成/解析逻辑）；导入前逐源真实抓取验证 + 三层去重（内置/已有/文件内），验证进度实时显示
+- **跨源搜索**：星标源优先，无星标时全源搜索已加载内容
+- **分享**：系统分享面板（微信/微博等），不支持时回退复制链接
+- **触感反馈**：星标/收藏/导入完成等操作震动提示
+
 ### Android
 
-`NND-x.x.x-android.apk` — 直接安装（需开启「未知来源」；v2.6.3 起为 release 优化构建，非 debug 版）。
+`NND-x.x.x-android.apk` — 直接安装（需开启「未知来源」；release 优化构建）。
 
 ### 从源码运行
 
@@ -152,7 +165,7 @@ NND/
 ├── build.sh                # 从源码构建前端 + 数据层 + 品牌补丁
 ├── start.sh / start.bat    # 启动脚本
 ├── tests/
-│   └── run-tests.mjs       # 自动化测试（22 项）
+│   └── run-tests.mjs       # 自动化测试（49 项）
 ├── scripts/
 │   ├── build-data.mjs      #   数据层构建（mobile/src → data-layer.mjs）
 │   ├── patch-web-sources.mjs #  前端源配置补丁（新源注入/废弃源清理/缓存修复）
@@ -167,6 +180,11 @@ NND/
 │   │   ├── fetch.ts        #     跨平台 HTTP（Electron/Capacitor/浏览器 三分支）
 │   │   ├── cache.ts        #     缓存（桌面JSON/Capacitor Preferences/localStorage）
 │   │   ├── getters.ts      #     85 源注册表
+│   │   ├── app.tsx         #     移动端主框架（底部导航/主题/搜索）
+│   │   ├── storage.ts      #     本地持久化（星标/书签/历史/RSS/主题）
+│   │   ├── opml.ts         #     OPML 生成/解析（与桌面版互通）
+│   │   ├── mobile-utils.ts #     阅读器/分享/震动/Toast
+│   │   ├── components/     #     页面组件（首页/我的/书签/搜索/设置）
 │   │   ├── sources/        #     79 个新闻源抓取逻辑
 │   │   └── sources-data.json #   源元数据
 │   ├── android/            #   Android 原生项目
@@ -267,6 +285,7 @@ npx cap sync ios && npx cap open ios
 
 | 版本 | 主要变更 |
 | --- | --- |
+| v3.0.0 | 移动端全量对齐桌面：分类浏览（7 栏目全源）+ 星标订阅 + 书签/历史 + 原生内嵌阅读器 + 主题切换 + 自定义 RSS 源 + OPML 导入导出（与桌面互通，导入逐源验证+三层去重）+ 跨源搜索 + 系统分享 + 触感反馈；测试扩至 49 项 |
 | v2.6.4 | 修复 pacman 包依赖：显式声明 Arch 系包名（gtk3/nss/alsa-lib/libnotify/at-spi2-core/xdg-utils/libayatana-appindicator），移除 fpm 默认依赖中 Manjaro/Arch 仓库不存在的 http-parser、libappindicator-gtk3 等 |
 | v2.6.3 | 发布产物调整：Linux 去除 tar.gz 改发 pacman 包（pkg.tar.zst，Arch/Manjaro 可直接安装）；Android 改 release 优化构建（去 debug 命名，体积 4.4→3.4MB） |
 | v2.6.2 | 订阅列表导入（OPML）：导入前逐源真实抓取验证 + 三层去重（内置/已有/文件内）+ 进度推送；测试扩至 45 项 |

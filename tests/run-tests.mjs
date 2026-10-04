@@ -356,6 +356,52 @@ await test("导入去重：normalizeUrl 规范化对比", () => {
   if (builtinDup !== 1 || existingDup !== 1 || fresh !== 1) throw new Error(`重复检查计数错误: ${builtinDup}/${existingDup}/${fresh}`)
 })
 
+// ========== 10. 移动端 OPML 与桌面版互通（v3.0.0） ==========
+console.log("\n=== 10. 移动端 OPML 互通 ===")
+await test("移动端 opml.ts 编译并导出 parse/generate", async () => {
+  const esbuild = createRequire(join(ROOT, "mobile", "package.json"))("esbuild")
+  const out = join(ROOT, ".temp", "mobile-opml-test.mjs")
+  esbuild.buildSync({
+    entryPoints: [join(ROOT, "mobile", "src", "opml.ts")],
+    bundle: true, format: "esm", platform: "node", target: "node18",
+    outfile: out,
+  })
+  const m = await import("file://" + out)
+  if (typeof m.generateOpml !== "function" || typeof m.parseOpml !== "function") throw new Error("导出缺失")
+})
+await test("移动端与桌面 OPML 生成结构一致（outline/xmlUrl 数）", async () => {
+  const m = await import("file://" + join(ROOT, ".temp", "mobile-opml-test.mjs"))
+  const data = JSON.parse(readFileSync(join(ROOT, "mobile", "src", "sources-data.json"), "utf8"))
+  const custom = [{ id: "c1", name: "互通测试源", url: "https://example.com/feed" }]
+  const mXml = m.generateOpml(custom, "3.0.0")
+  const dXml = opml.generateOpml(data, custom, { title: "NND 订阅列表", generatedAt: new Date().toISOString() })
+  const mOutline = (mXml.match(/<outline /g) || []).length
+  const dOutline = (dXml.match(/<outline /g) || []).length
+  if (mOutline !== dOutline) throw new Error(`outline 数不一致: ${mOutline} vs ${dOutline}`)
+  const mXmlUrl = (mXml.match(/xmlUrl=/g) || []).length
+  const dXmlUrl = (dXml.match(/xmlUrl=/g) || []).length
+  if (mXmlUrl !== dXmlUrl) throw new Error(`xmlUrl 数不一致: ${mXmlUrl} vs ${dXmlUrl}`)
+})
+await test("移动端可解析桌面导出的 OPML（40 个 feed）", async () => {
+  const m = await import("file://" + join(ROOT, ".temp", "mobile-opml-test.mjs"))
+  const data = JSON.parse(readFileSync(join(ROOT, "mobile", "src", "sources-data.json"), "utf8"))
+  const dXml = opml.generateOpml(data, [], {})
+  const parsed = m.parseOpml(dXml)
+  const expected = Object.values(data).filter((x) => x._rss).length
+  if (parsed.feeds.length !== expected) throw new Error(`解析 ${parsed.feeds.length}，应为 ${expected}`)
+})
+await test("移动端 parseOpml 容错与文件内去重", async () => {
+  const m = await import("file://" + join(ROOT, ".temp", "mobile-opml-test.mjs"))
+  for (const bad of ["", "abc", "<opml></opml>"]) {
+    let threw = false
+    try { m.parseOpml(bad) } catch (_) { threw = true }
+    if (!threw) throw new Error(`应报错: ${JSON.stringify(bad)}`)
+  }
+  const t = '<opml version="2.0"><body><outline text="A" xmlUrl="https://x.com/f/"/><outline text="B" xmlUrl="https://x.com/f"/></body></opml>'
+  const p = m.parseOpml(t)
+  if (p.feeds.length !== 1 || p.duplicatesInFile !== 1) throw new Error("去重计数错误")
+})
+
 // ========== 汇总 ==========
 console.log("\n" + "=".repeat(50))
 console.log(`测试结果: ${passed} 通过, ${failed} 失败`)

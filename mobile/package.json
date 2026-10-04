@@ -14,10 +14,13 @@
   },
   "dependencies": {
     "@capacitor/app": "^8.0.0",
+    "@capacitor/browser": "^8.0.5",
     "@capacitor/core": "^8.0.0",
+    "@capacitor/filesystem": "^8.1.4",
     "@capacitor/haptics": "^8.0.0",
     "@capacitor/keyboard": "^8.0.0",
     "@capacitor/preferences": "^8.0.0",
+    "@capacitor/share": "^8.0.2",
     "@capacitor/splash-screen": "^8.0.0",
     "@capacitor/status-bar": "^8.0.0",
     "react": "^19.3.0",
