@@ -4,7 +4,7 @@
 
 由 [TeleAgent](https://github.com/kane250) 打包发布，致敬原项目 [NewsNow](https://github.com/newsnext/newsnow)。
 
-当前版本：**v2.6.3**
+当前版本：**v2.6.4**
 
 ---
 
@@ -60,7 +60,7 @@
 | --- | --- |
 | `NND-x.x.x-x86_64.AppImage` | 免安装运行，chmod +x 后直接执行 |
 | `NND-x.x.x-amd64.deb` | Debian/Ubuntu 安装包 |
-| `NND-x.x.x-x86_64.pkg.tar.zst` | Arch/Manjaro 安装包（`sudo pacman -U`） |
+| `NND-x.x.x-x86_64.pkg.tar.zst` | Arch/Manjaro 安装包（`sudo pacman -U`），依赖均为官方仓库名 |
 
 ### Android
 
@@ -267,6 +267,7 @@ npx cap sync ios && npx cap open ios
 
 | 版本 | 主要变更 |
 | --- | --- |
+| v2.6.4 | 修复 pacman 包依赖：显式声明 Arch 系包名（gtk3/nss/alsa-lib/libnotify/at-spi2-core/xdg-utils/libayatana-appindicator），移除 fpm 默认依赖中 Manjaro/Arch 仓库不存在的 http-parser、libappindicator-gtk3 等 |
 | v2.6.3 | 发布产物调整：Linux 去除 tar.gz 改发 pacman 包（pkg.tar.zst，Arch/Manjaro 可直接安装）；Android 改 release 优化构建（去 debug 命名，体积 4.4→3.4MB） |
 | v2.6.2 | 订阅列表导入（OPML）：导入前逐源真实抓取验证 + 三层去重（内置/已有/文件内）+ 进度推送；测试扩至 45 项 |
 | v2.6.1 | 订阅列表导出（OPML 2.0）：全部内置源分类分组导出 + 自定义 RSS 源，39 个 RSS 源携带可直接订阅的 xmlUrl；测试扩至 38 项 |
