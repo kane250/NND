@@ -190,8 +190,7 @@
 
   async function loadRssFeeds() {
     try {
-      const r = await fetch("app://local/api/rss")
-      const feeds = await r.json()
+      const feeds = await window.settings.rssList()
       const list = $("rssList")
       if (!feeds.length) {
         list.innerHTML = '<div style="opacity:.4;font-size:12px;padding:8px;">暂无自定义源</div>'
@@ -204,7 +203,7 @@
       ).join("")
       list.querySelectorAll(".rss-del").forEach(b => {
         b.onclick = async () => {
-          await fetch("app://local/api/rss/remove", { method: "POST", body: JSON.stringify({ id: b.dataset.rssId }) })
+          await window.settings.rssRemove({ id: b.dataset.rssId })
           loadRssFeeds()
         }
       })
@@ -215,7 +214,8 @@
     const name = $("rssName").value.trim()
     const url = $("rssUrl").value.trim()
     if (!url) return
-    await fetch("app://local/api/rss/add", { method: "POST", body: JSON.stringify({ name, url }) })
+    const r = await window.settings.rssAdd({ name, url })
+    if (!r.ok) { $("ioStatus") && ($("ioStatus").textContent = "✗ 添加失败：" + (r.error || "")); return }
     $("rssName").value = ""
     $("rssUrl").value = ""
     loadRssFeeds()

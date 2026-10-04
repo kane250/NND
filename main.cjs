@@ -1479,6 +1479,27 @@ ipcMain.handle("settings:close", () => {
   if (settingsWindow) settingsWindow.close()
 })
 
+// 自定义 RSS 源管理 IPC（设置页为 file:// 协议，无法直接 fetch app:// API，走 IPC）
+ipcMain.handle("settings:rss-list", () => config.rssFeeds || [])
+ipcMain.handle("settings:rss-add", (_e, { name, url }) => {
+  try {
+    if (!url) return { ok: false, error: "URL 不能为空" }
+    if (!/^https?:\/\/.+/i.test(url)) return { ok: false, error: "仅支持 http(s) 地址" }
+    const exists = (config.rssFeeds || []).some((f) => f.url === url)
+    if (exists) return { ok: false, error: "该源已存在" }
+    const feed = { id: "rss-" + Date.now(), name: name || url, url }
+    config.rssFeeds = config.rssFeeds || []
+    config.rssFeeds.push(feed)
+    saveConfig()
+    return { ok: true, feed }
+  } catch (e) { return { ok: false, error: e.message } }
+})
+ipcMain.handle("settings:rss-remove", (_e, { id }) => {
+  config.rssFeeds = (config.rssFeeds || []).filter((f) => f.id !== id)
+  saveConfig()
+  return { ok: true }
+})
+
 // ---------- 菜单 ----------
 function updateMenu() {
   Menu.setApplicationMenu(buildMenu())

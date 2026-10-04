@@ -277,9 +277,17 @@ npx cap sync ios && npx cap open ios
 
 ## 截图
 
-| 新闻列表 | 内置阅读器 | 选择订阅 | 主界面 |
+### 桌面端（v3.0.0）
+
+| 新闻列表 | 内置阅读器 | 选择订阅 | 设置（数据管理） |
 |:---:|:---:|:---:|:---:|
-| ![列表](screenshots/01-news-list.png) | ![阅读器](screenshots/02-built-in-reader.png) | ![订阅](screenshots/03-subscribe.png) | ![v2](screenshots/04-v2-desktop.png) |
+| ![列表](screenshots/01-news-list.png) | ![阅读器](screenshots/02-built-in-reader.png) | ![订阅](screenshots/03-subscribe.png) | ![设置](screenshots/04-desktop-settings.png) |
+
+### 移动端（v3.0.0）
+
+| 首页分类浏览 | 我的（星标订阅） | 书签 / 历史 | 设置（RSS / OPML） |
+|:---:|:---:|:---:|:---:|
+| ![首页](screenshots/05-mobile-home.png) | ![我的](screenshots/06-mobile-mine.png) | ![书签](screenshots/07-mobile-saves.png) | ![设置](screenshots/08-mobile-settings.png) |
 
 ## 版本历史
 

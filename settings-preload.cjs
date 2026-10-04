@@ -10,6 +10,9 @@ contextBridge.exposeInMainWorld("settings", {
   exportOpml: () => ipcRenderer.invoke("settings:export-opml"),
   importData: () => ipcRenderer.invoke("settings:import"),
   importOpml: () => ipcRenderer.invoke("settings:import-opml"),
+  rssList: () => ipcRenderer.invoke("settings:rss-list"),
+  rssAdd: (v) => ipcRenderer.invoke("settings:rss-add", v),
+  rssRemove: (v) => ipcRenderer.invoke("settings:rss-remove", v),
   onImportOpmlProgress: (cb) => {
     const listener = (_e, p) => cb(p)
     ipcRenderer.on("import-opml-progress", listener)

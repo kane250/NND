@@ -1,0 +1,11 @@
+
+DevTools listening on ws://127.0.0.1:9222/devtools/browser/6abe1f21-51ad-40d6-b417-f571498573d7
+数据层加载完成，源数量: 85
+NND v3.0.0 就绪（直抓模式，无子进程）
+自动刷新已开启，间隔 10 分钟
+libva error: /usr/lib/dri/i965_drv_video.so init failed
+[398983:1004/124057.798309:ERROR:media/gpu/vaapi/vaapi_wrapper.cc:1796] vaInitialize failed: unknown libva error
+APPIMAGE env is not defined, current application is not an AppImage
+[398983:1004/124103.737981:ERROR:ui/gl/gl_surface_presentation_helper.cc:260] GetVSyncParametersIfAvailable() failed for 1 times!
+[398983:1004/124105.748991:ERROR:ui/gl/gl_surface_presentation_helper.cc:260] GetVSyncParametersIfAvailable() failed for 2 times!
+[398983:1004/124107.409055:ERROR:ui/gl/gl_surface_presentation_helper.cc:260] GetVSyncParametersIfAvailable() failed for 3 times!
