@@ -4,7 +4,7 @@
 
 由 [TeleAgent](https://github.com/kane250) 打包发布，致敬原项目 [NewsNow](https://github.com/newsnext/newsnow)。
 
-当前版本：**v3.0.0**
+当前版本：**v3.0.1**
 
 ---
 
@@ -293,6 +293,7 @@ npx cap sync ios && npx cap open ios
 
 | 版本 | 主要变更 |
 | --- | --- |
+| v3.0.1 | 修复桌面设置页自定义 RSS 管理自 v2.2.0 起不可用的问题（设置页 file:// 协议无法 fetch app:// API，改走 IPC 通道）；README 截图更新为 v3.0.0 实机图（桌面 4 + 移动 4） |
 | v3.0.0 | 移动端全量对齐桌面：分类浏览（7 栏目全源）+ 星标订阅 + 书签/历史 + 原生内嵌阅读器 + 主题切换 + 自定义 RSS 源 + OPML 导入导出（与桌面互通，导入逐源验证+三层去重）+ 跨源搜索 + 系统分享 + 触感反馈；测试扩至 49 项 |
 | v2.6.4 | 修复 pacman 包依赖：显式声明 Arch 系包名（gtk3/nss/alsa-lib/libnotify/at-spi2-core/xdg-utils/libayatana-appindicator），移除 fpm 默认依赖中 Manjaro/Arch 仓库不存在的 http-parser、libappindicator-gtk3 等 |
 | v2.6.3 | 发布产物调整：Linux 去除 tar.gz 改发 pacman 包（pkg.tar.zst，Arch/Manjaro 可直接安装）；Android 改 release 优化构建（去 debug 命名，体积 4.4→3.4MB） |
