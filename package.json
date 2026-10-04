@@ -1,6 +1,6 @@
 {
   "name": "nnd",
-  "version": "2.6.2",
+  "version": "2.6.3",
   "description": "NND (NewsNow Desktop) — 跨平台新闻聚合阅读器 v2.0（主进程直抓架构，无原生模块）",
   "main": "main.cjs",
   "author": {
@@ -11,7 +11,7 @@
   "private": true,
   "scripts": {
     "start": "electron .",
-    "dist:linux": "electron-builder --linux AppImage tar.gz",
+    "dist:linux": "electron-builder --linux AppImage deb pacman",
     "dist:win": "electron-builder --win nsis",
     "dist": "electron-builder -mlw"
   },
@@ -63,8 +63,8 @@
       "icon": "build-icon.png",
       "target": [
         "AppImage",
-        "tar.gz",
-        "deb"
+        "deb",
+        "pacman"
       ],
       "category": "Network",
       "description": "NND — 跨平台新闻聚合阅读器"
@@ -90,6 +90,9 @@
         "libuuid1",
         "libsecret-1-0"
       ]
+    },
+    "pacman": {
+      "artifactName": "NND-${version}-x86_64.pkg.tar.zst"
     },
     "nsis": {
       "artifactName": "NND-${version}-win-${arch}-setup.exe",

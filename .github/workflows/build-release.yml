@@ -22,21 +22,17 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Build Linux packages
-        run: npx electron-builder --linux AppImage tar.gz deb --publish never
+        run: npx electron-builder --linux AppImage deb pacman --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Rename tar.gz
-        run: |
-          cd release-build
-          mv nnd-*.tar.gz NND-${{ github.event.inputs.version || github.ref_name }}-linux-x64.tar.gz || true
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: linux-build
           path: |
             release-build/*.AppImage
-            release-build/*.tar.gz
             release-build/*.deb
+            release-build/*.pkg.tar.zst
 
   build-windows:
     runs-on: windows-latest
@@ -87,11 +83,11 @@ jobs:
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleRelease
       - name: Copy APK
         run: |
           mkdir -p release
-          cp android/app/build/outputs/apk/debug/app-debug.apk "release/NND-${{ github.event.inputs.version || github.ref_name }}-android-debug.apk"
+          cp android/app/build/outputs/apk/release/app-release.apk "release/NND-${{ github.event.inputs.version || github.ref_name }}-android.apk"
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:

@@ -20,6 +20,8 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // CI 无正式签名密钥：用 debug 密钥签名使 release APK 可安装分发
+            signingConfig signingConfigs.debug
         }
     }
 }

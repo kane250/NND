@@ -4,7 +4,7 @@
 
 由 [TeleAgent](https://github.com/kane250) 打包发布，致敬原项目 [NewsNow](https://github.com/newsnext/newsnow)。
 
-当前版本：**v2.6.2**
+当前版本：**v2.6.3**
 
 ---
 
@@ -60,11 +60,11 @@
 | --- | --- |
 | `NND-x.x.x-x86_64.AppImage` | 免安装运行，chmod +x 后直接执行 |
 | `NND-x.x.x-amd64.deb` | Debian/Ubuntu 安装包 |
-| `NND-vx.x.x-linux-x64.tar.gz` | 压缩包，解压后运行 `./start.sh` |
+| `NND-x.x.x-x86_64.pkg.tar.zst` | Arch/Manjaro 安装包（`sudo pacman -U`） |
 
 ### Android
 
-`NND-vx.x.x-android-debug.apk` — 直接安装（需开启「未知来源」）。
+`NND-x.x.x-android.apk` — 直接安装（需开启「未知来源」；v2.6.3 起为 release 优化构建，非 debug 版）。
 
 ### 从源码运行
 
@@ -211,7 +211,7 @@ node scripts/build-data.mjs    # 需 mobile 端 npm install
 
 ```bash
 # Linux
-npx electron-builder --linux AppImage tar.gz deb --publish never
+npx electron-builder --linux AppImage deb pacman --publish never
 
 # Windows
 npx electron-builder --win nsis --publish never
@@ -234,9 +234,9 @@ node tests/run-tests.mjs       # 22 项自动化测试
 
 | 平台 | 产物 | 运行环境 |
 | --- | --- | --- |
-| Linux | AppImage + deb + tar.gz | ubuntu-22.04 |
+| Linux | AppImage + deb + pacman | ubuntu-22.04 |
 | Windows | nsis 安装包 (setup.exe) | windows-latest |
-| Android | debug APK | ubuntu-22.04 |
+| Android | release APK | ubuntu-22.04 |
 | iOS | 未签名 ipa | macos-14 |
 
 构建完成后自动创建 GitHub Release 并上传所有产物。
@@ -249,9 +249,9 @@ npm install
 node build-web.mjs          # 构建 Web 资源
 npx cap sync android        # 同步 Android
 
-# Android APK
-cd android && ./gradlew assembleDebug
-# 产物: android/app/build/outputs/apk/debug/app-debug.apk
+# Android APK（release 构建，debug 密钥签名）
+cd android && ./gradlew assembleRelease
+# 产物: android/app/build/outputs/apk/release/app-release.apk
 
 # iOS（需 Mac + Xcode）
 npx cap sync ios && npx cap open ios
@@ -267,6 +267,7 @@ npx cap sync ios && npx cap open ios
 
 | 版本 | 主要变更 |
 | --- | --- |
+| v2.6.3 | 发布产物调整：Linux 去除 tar.gz 改发 pacman 包（pkg.tar.zst，Arch/Manjaro 可直接安装）；Android 改 release 优化构建（去 debug 命名，体积 4.4→3.4MB） |
 | v2.6.2 | 订阅列表导入（OPML）：导入前逐源真实抓取验证 + 三层去重（内置/已有/文件内）+ 进度推送；测试扩至 45 项 |
 | v2.6.1 | 订阅列表导出（OPML 2.0）：全部内置源分类分组导出 + 自定义 RSS 源，39 个 RSS 源携带可直接订阅的 xmlUrl；测试扩至 38 项 |
 | v2.6.0 | 内容源规整（97→85：去除重复源、分类修正、命名统一）+ 数据导入导出（书签/历史/RSS/设置）+ 测试扩至 33 项 |
