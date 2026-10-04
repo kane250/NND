@@ -2,7 +2,7 @@
 
 > **NND**（NewsNow Desktop）是基于 [newsnext/newsnow](https://github.com/newsnext/newsnow)（作者 ourongxing）改造的**跨平台新闻聚合阅读器**，支持 **Linux、Windows、Android、iOS** 四平台。
 
-由 [TeleAgent] 打包发布，致敬原项目 [NewsNow](https://github.com/newsnext/newsnow)。
+由 TeleAgent 打包发布，致敬原项目 [NewsNow](https://github.com/newsnext/newsnow)。
 
 当前版本：**v2.6.2**
 
