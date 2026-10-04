@@ -52,6 +52,8 @@ export async function setStatusBar(color: string, darkIcons: boolean) {
   await loadPlugins()
   try {
     if (StatusBarPlugin) {
+      // 设为不覆盖：WebView 内容不延伸到状态栏下方
+      await StatusBarPlugin.setOverlaysWebView({ overlay: false }).catch(() => {})
       await StatusBarPlugin.setBackgroundColor({ color })
       await StatusBarPlugin.setStyle({ style: darkIcons ? "Light" : "Dark" })
     }

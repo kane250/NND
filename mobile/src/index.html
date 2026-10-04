@@ -29,7 +29,7 @@
       padding-bottom: env(safe-area-inset-bottom);
     }
     .app { max-width: 100%; min-height: 100vh; display: flex; flex-direction: column; }
-    .main { flex: 1; padding-bottom: 64px; }
+    .main { flex: 1; padding-bottom: 72px; }
     a { color: inherit; }
 
     /* ---------- Header ---------- */
@@ -37,19 +37,22 @@
       display: flex; align-items: center; gap: 10px;
       padding: 10px 12px; position: sticky; top: 0; z-index: 100;
       background: var(--bg); border-bottom: 1px solid var(--border);
-      padding-top: calc(10px + env(safe-area-inset-top));
+      padding-top: calc(14px + var(--safe-top, 0px));
     }
     .logo { font-size: 17px; font-weight: 800; color: var(--accent); flex-shrink: 0; letter-spacing: .5px; }
     .header-title { font-size: 16px; font-weight: 600; }
     .category-chips {
       display: flex; gap: 6px; overflow-x: auto; flex: 1;
       scrollbar-width: none; -webkit-overflow-scrolling: touch;
+      -ms-overflow-style: none; touch-action: pan-x;
+      scroll-snap-type: x proximity;
     }
     .category-chips::-webkit-scrollbar { display: none; }
     .chip {
       padding: 5px 12px; border: 1px solid var(--border); border-radius: 999px;
       background: var(--bg-card); color: var(--text-dim); font-size: 13px;
       cursor: pointer; white-space: nowrap; flex-shrink: 0;
+      scroll-snap-align: start;
     }
     .chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
     .header-actions { display: flex; gap: 4px; flex-shrink: 0; }
@@ -90,7 +93,7 @@
     .card-refresh.spinning { animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .card-body { padding: 8px 14px 12px; max-height: 400px; overflow-y: auto; }
+    .card-body { padding: 8px 14px 12px; }
     .loading, .error { padding: 20px; text-align: center; color: var(--text-dim); font-size: 13px; }
     .error { color: var(--accent); }
     .retry-btn {
@@ -229,19 +232,20 @@
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 150;
       display: flex; background: var(--bg); border-top: 1px solid var(--border);
       padding-bottom: env(safe-area-inset-bottom);
+      height: 64px;
     }
     .tabbar-item {
-      flex: 1; padding: 7px 0 5px; border: none; background: transparent;
-      display: flex; flex-direction: column; align-items: center; gap: 1px;
+      flex: 1; padding: 8px 0 6px; border: none; background: transparent;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
       color: var(--text-muted); cursor: pointer;
     }
     .tabbar-item.active { color: var(--accent); }
-    .tabbar-icon { font-size: 17px; line-height: 1; }
-    .tabbar-name { font-size: 10px; }
+    .tabbar-icon { font-size: 24px; line-height: 1; }
+    .tabbar-name { font-size: 12px; font-weight: 500; }
 
     /* ---------- Toast ---------- */
     #nnd-toast {
-      position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%) translateY(20px);
+      position: fixed; left: 50%; bottom: 92px; transform: translateX(-50%) translateY(20px);
       z-index: 400; padding: 9px 18px; border-radius: 999px;
       background: rgba(0,0,0,.78); color: #fff; font-size: 13px;
       opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s;
