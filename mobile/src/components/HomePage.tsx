@@ -106,7 +106,7 @@ export function NewsCard({
       {data && data.items && data.items.length > 0 && (
         <div className="card-body">
           <ul className="news-list">
-            {data.items.slice(0, 5).map((item: NewsItem, index: number) => (
+            {data.items.slice(0, 10).map((item: NewsItem, index: number) => (
               <NewsListItem key={item.id || index} item={item} index={index} type={source.type} sourceName={source.name + (source.subtitle ? " " + source.subtitle : "")} />
             ))}
           </ul>
