@@ -20,7 +20,9 @@ jobs:
         with:
           node-version: 22
       - name: Install dependencies
-        run: npm install
+        run: |
+          npm install
+          sudo apt-get update -qq && sudo apt-get install -y -qq libarchive-tools
       - name: Build Linux packages
         run: npx electron-builder --linux AppImage deb pacman --publish never
         env:
