@@ -3,7 +3,7 @@
  * 支持内置源与自定义 RSS 源统一渲染
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from "react"
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { sources } from "../types"
 import { getSourceData, getCustomFeedData } from "../api"
 import type { NewsItem, SourceResponse, SourceID } from "../types"
@@ -38,15 +38,25 @@ export function NewsCard({
   refreshTrigger,
   starred,
   onToggleStar,
+  onVisible,
+  onSettled,
 }: {
   source: CardSource
   refreshTrigger: number
   starred: boolean
   onToggleStar: (id: string) => void
+  /** 进入视口时上报（用于首屏 ready 统计） */
+  onVisible?: (id: string) => void
+  /** 数据加载结束（成功或失败）时上报 */
+  onSettled?: (id: string) => void
 }) {
   const [data, setData] = useState<SourceResponse | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [inView, setInView] = useState(false)
+  const cardRef = useRef<HTMLDivElement>(null)
+  /** 是否已发起过请求（懒加载守卫：仅进入视口才请求） */
+  const fetchedRef = useRef(false)
 
   const fetchData = useCallback(
     async (force = false) => {
@@ -61,18 +71,54 @@ export function NewsCard({
         setError(e?.message || "获取失败")
       } finally {
         setLoading(false)
+        onSettled?.(source.id)
       }
     },
     [source.id, source.custom],
   )
 
+  // 可见性检测：进入视口（提前 600px 预加载）才开始请求，优先加载可见部分
   useEffect(() => {
-    fetchData(refreshTrigger > 0)
+    const el = cardRef.current
+    if (!el || typeof IntersectionObserver === "undefined") {
+      // 环境不支持时直接视为可见，立即加载
+      setInView(true)
+      return
+    }
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true)
+          onVisible?.(source.id)
+          obs.disconnect()
+        }
+      },
+      { rootMargin: "300px 0px" },
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // 懒加载：进入视口才发起首次请求
+  useEffect(() => {
+    if (inView && !fetchedRef.current) {
+      fetchedRef.current = true
+      fetchData(false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inView])
+
+  // 手动刷新：只重新加载已加载过的卡片（视口外未触达的不请求）
+  useEffect(() => {
+    if (refreshTrigger > 0 && fetchedRef.current) {
+      fetchData(true)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshTrigger])
 
   return (
-    <div className="card" style={{ borderLeftColor: starred ? "var(--accent)" : "var(--border)" }}>
+    <div ref={cardRef} className="card" style={{ borderLeftColor: starred ? "var(--accent)" : "var(--border)" }}>
       <div className="card-header">
         <div className="card-title">
           <span className="card-name">{source.name}</span>
@@ -113,6 +159,7 @@ export function NewsCard({
         </div>
       )}
       {data && (!data.items || data.items.length === 0) && <div className="loading">暂无内容</div>}
+      {!data && !loading && !error && <div className="loading">滚动到此处时加载…</div>}
     </div>
   )
 }
@@ -173,18 +220,51 @@ export function HomePage({
   starred,
   onStarredChange,
   onFeedsChanged,
+  onFirstScreenReady,
 }: {
   categoryId: CategoryId
   refreshTrigger: number
   starred: string[]
   onStarredChange: (ids: string[]) => void
   onFeedsChanged?: () => void
+  /** 首屏可见源全部加载完成（成功或失败）后回调一次，用于隐藏启动画面 */
+  onFirstScreenReady?: () => void
 }) {
   const [customFeeds, setCustomFeeds] = useState<CustomRssFeed[]>([])
+  /** 已进入视口的源 id */
+  const visibleIdsRef = useRef<Set<string>>(new Set())
+  /** 已加载完成的源 id */
+  const settledIdsRef = useRef<Set<string>>(new Set())
+  const firstReadyRef = useRef(false)
 
   useEffect(() => {
     getCustomRssFeeds().then(setCustomFeeds)
   }, [])
+
+  /** 首屏 ready 判定：可见源数量 > 0 且全部加载完成 → 通知（仅一次） */
+  const maybeNotifyFirstReady = useCallback(() => {
+    if (firstReadyRef.current) return
+    const visible = visibleIdsRef.current
+    if (visible.size === 0) return
+    for (const id of visible) {
+      if (!settledIdsRef.current.has(id)) return
+    }
+    firstReadyRef.current = true
+    onFirstScreenReady?.()
+  }, [onFirstScreenReady])
+
+  const handleVisible = useCallback((id: string) => {
+    visibleIdsRef.current.add(id)
+  }, [])
+
+  const handleSettled = useCallback(
+    (id: string) => {
+      visibleIdsRef.current.add(id)
+      settledIdsRef.current.add(id)
+      maybeNotifyFirstReady()
+    },
+    [maybeNotifyFirstReady],
+  )
 
   // 按栏目过滤源（分类内全量显示）
   const cardSources = useMemo<CardSource[]>(() => {
@@ -211,6 +291,13 @@ export function HomePage({
     return builtin.concat(custom)
   }, [categoryId, customFeeds])
 
+  // 切换分类时重置首屏判定状态（新分类重新统计）
+  useEffect(() => {
+    if (firstReadyRef.current) return
+    visibleIdsRef.current = new Set()
+    settledIdsRef.current = new Set()
+  }, [categoryId])
+
   return (
     <div className="columns">
       {cardSources.map((s) => (
@@ -223,6 +310,8 @@ export function HomePage({
             const next = await toggleStarred(id)
             onStarredChange(next)
           }}
+          onVisible={handleVisible}
+          onSettled={handleSettled}
         />
       ))}
       {cardSources.length === 0 && <div className="empty-tip">此栏目暂无源，可在「设置」中添加自定义 RSS 源</div>}

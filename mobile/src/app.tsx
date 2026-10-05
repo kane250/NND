@@ -7,7 +7,7 @@
 import React, { useState, useEffect, useCallback } from "react"
 import { createRoot } from "react-dom/client"
 import { getThemeMode, setThemeMode, getStarredSources, type ThemeMode } from "./storage"
-import { setStatusBar, showToast } from "./mobile-utils"
+import { setStatusBar, showToast, hideSplash } from "./mobile-utils"
 import { HomePage, CATEGORIES, type CategoryId } from "./components/HomePage"
 import { MinePage } from "./components/MinePage"
 import { SavesPage } from "./components/SavesPage"
@@ -54,6 +54,16 @@ function App() {
     const listener = () => getThemeMode().then(applyTheme)
     mq?.addEventListener?.("change", listener)
     return () => mq?.removeEventListener?.("change", listener)
+  }, [])
+
+  // 启动画面控制：首屏数据就绪后隐藏；5 秒超时兑底（网络极慢时不卡启动画面）
+  useEffect(() => {
+    const timeout = setTimeout(() => hideSplash(300), 5000)
+    return () => clearTimeout(timeout)
+  }, [])
+
+  const handleFirstScreenReady = useCallback(() => {
+    hideSplash(250)
   }, [])
 
   const changeTheme = useCallback(async (m: ThemeMode) => {
@@ -111,6 +121,7 @@ function App() {
             refreshTrigger={refreshTrigger}
             starred={starred}
             onStarredChange={setStarred}
+            onFirstScreenReady={handleFirstScreenReady}
           />
         )}
         {tab === "mine" && <MinePage refreshTrigger={refreshTrigger} starred={starred} onStarredChange={setStarred} />}

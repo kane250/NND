@@ -37,7 +37,11 @@
       display: flex; align-items: center; gap: 10px;
       padding: 10px 12px; position: sticky; top: 0; z-index: 100;
       background: var(--bg); border-bottom: 1px solid var(--border);
-      padding-top: calc(14px + var(--safe-area-inset-top, 0px));
+      /* 注意：不能用 --safe-area-inset-top 这个名字！
+         WebView >= 140 (Chromium 40699457 修复) 会在 viewport-fit=cover 下自动把
+         状态栏高度填进该变量，与 margin 方案叠加成双重留白（真机实测 14+44=58px）。
+         原生层 margin 已避开状态栏，这里 0px 即可 */
+      padding-top: calc(14px + var(--nnd-safe-top, 0px));
     }
     .logo { font-size: 17px; font-weight: 800; color: var(--accent); flex-shrink: 0; letter-spacing: .5px; }
     .header-title { font-size: 16px; font-weight: 600; }

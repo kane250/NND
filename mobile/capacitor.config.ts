@@ -13,7 +13,9 @@ const config: CapacitorConfig = {
   },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 1000,
+      // 启动画面保持显示，直到首页首屏数据加载完成后手动隐藏（app.tsx 控制）
+      launchShowDuration: 0,
+      launchAutoHide: false,
       backgroundColor: "#0f0f0f",
       androidSplashResourceName: "splash",
       iosSpinnerStyle: "small",

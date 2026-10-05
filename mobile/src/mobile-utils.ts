@@ -128,3 +128,30 @@ export function showToast(message: string, duration = 2200) {
   if (toastTimer) clearTimeout(toastTimer)
   toastTimer = setTimeout(() => el?.classList.remove("show"), duration)
 }
+
+// ---------- 启动画面 ----------
+
+let SplashLoaded = false
+let SplashPlugin: any = false
+
+async function ensureSplashPlugin() {
+  if (SplashLoaded) return
+  SplashLoaded = true
+  try {
+    const cap = (globalThis as any).Capacitor
+    if (cap?.isNativePlatform?.()) {
+      const m = await import("@capacitor/splash-screen").catch(() => null)
+      SplashPlugin = (m as any)?.SplashScreen || false
+    }
+  } catch (_) {
+    SplashPlugin = false
+  }
+}
+
+/** 隐藏原生启动画面（首屏数据就绪时调用；非原生环境无操作） */
+export async function hideSplash(fadeDuration = 250) {
+  await ensureSplashPlugin()
+  try {
+    if (SplashPlugin) await SplashPlugin.hide({ fadeDuration })
+  } catch (_) {}
+}
