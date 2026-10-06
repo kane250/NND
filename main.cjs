@@ -19,8 +19,8 @@ const VIEWER_PRELOAD = path.join(APP_DIR, "viewer-preload.cjs")
 const SETTINGS_HTML = path.join(APP_DIR, "settings.html")
 const SETTINGS_PRELOAD = path.join(APP_DIR, "settings-preload.cjs")
 
-const VERSION = "3.0.2"
-const BUILD_DATE = "2026-10-03"
+const { version: VERSION } = require("./package.json")
+const BUILD_DATE = "2026-10-05"
 const APP_NAME = "NND"
 const APP_FULL_NAME = "NewsNow Desktop"
 const PROJECT_HOME = "https://github.com/kane250/NND"
@@ -644,6 +644,77 @@ function createMainWindow() {
           window.__nndAddBookmark = function(url, title, source) {
             fetch("app://local/api/bookmarks/add", {method:"POST",body:JSON.stringify({url:url, title:title, source:source||""})});
           };
+
+          // —— 源条数切换：点击源标题在 10 ↔ 25 条之间切换 ——
+          // 数据层每源最多 30 条（DOM 渲染全部），10 条模式隐藏多余条目并保持卡片 500px；
+          // 25 条模式全部显示（不足 25 显示实际条数）且卡片高度自适应。按源名持久化到 localStorage。
+          var NND_LIMIT_KEY = "nnd_src_limit_v1";
+          function nndGetLimitModes() {
+            try { return JSON.parse(localStorage.getItem(NND_LIMIT_KEY) || "{}"); } catch (e) { return {}; }
+          }
+          function nndSetLimitMode(name, mode) {
+            try {
+              var m = nndGetLimitModes();
+              m[name] = mode;
+              localStorage.setItem(NND_LIMIT_KEY, JSON.stringify(m));
+            } catch (e) {}
+          }
+          function nndCardKey(titleEl) {
+            var name = (titleEl.textContent || "").trim();
+            // 同名源（如 36氪热榜/快讯、哔哩哔哩多卡）用徽标区分
+            var badge = titleEl.parentElement ? titleEl.parentElement.querySelector("span.text-sm") : null;
+            if (badge) name += "|" + (badge.textContent || "").trim();
+            return name;
+          }
+          function nndApplyCardLimit(card) {
+            var titleEl = card.querySelector("span.text-xl.font-bold");
+            var ol = card.querySelector("ol.flex.flex-col");
+            if (!titleEl || !ol) return;
+            var name = nndCardKey(titleEl);
+            if (!name) return;
+            var mode = nndGetLimitModes()[name] || 10;
+            var cap = (mode === 25) ? 25 : 10;
+            var lis = ol.children;
+            for (var i = 0; i < lis.length; i++) {
+              var want = (i < cap) ? "" : "none";
+              if (lis[i].style.display !== want) lis[i].style.display = want;
+            }
+            if (cap === 25) {
+              card.style.height = "auto";
+              card.style.maxHeight = "none";
+            } else {
+              card.style.height = "";
+              card.style.maxHeight = "";
+            }
+            titleEl.style.cursor = "pointer";
+            titleEl.title = "点击切换显示条数（当前 " + mode + " 条）";
+          }
+          function nndApplyAllCardLimits() {
+            var cards = document.querySelectorAll("div.rounded-2xl");
+            for (var i = 0; i < cards.length; i++) {
+              var c = cards[i];
+              if (c.querySelector("ol.flex.flex-col") && c.querySelector("span.text-xl.font-bold")) nndApplyCardLimit(c);
+            }
+          }
+          document.addEventListener("click", function (ev) {
+            var t = ev.target && ev.target.closest ? ev.target.closest("span.text-xl.font-bold") : null;
+            if (!t) return;
+            var card = t.closest("div.rounded-2xl");
+            if (!card || !card.querySelector("ol.flex.flex-col")) return;
+            var name = nndCardKey(t);
+            var cur = nndGetLimitModes()[name] || 10;
+            nndSetLimitMode(name, cur === 25 ? 10 : 25);
+            nndApplyCardLimit(card);
+          }, true);
+          // React 重渲染/切分类后维持各源的条数模式（rAF 防抖）
+          var nndLimitPend = false;
+          var nndLimitMO = new MutationObserver(function () {
+            if (nndLimitPend) return;
+            nndLimitPend = true;
+            requestAnimationFrame(function () { nndLimitPend = false; nndApplyAllCardLimits(); });
+          });
+          nndLimitMO.observe(document.body, { childList: true, subtree: true });
+          nndApplyAllCardLimits();
         })();
       `, true)
     } catch (e) {}
@@ -817,6 +888,12 @@ function setupRefreshTimer() {
 }
 
 // ---------- 内置阅读器 ----------
+function sendViewerUrl(u) {
+  if (viewer.toolbar && !viewer.toolbar.webContents.isDestroyed()) {
+    viewer.toolbar.webContents.send("viewer:url", u || "")
+  }
+}
+
 function openViewer(url) {
   if (!mainWindow || mainWindow.isDestroyed()) return
   if (!viewer.toolbar) {
@@ -828,17 +905,7 @@ function openViewer(url) {
         nodeIntegration: false,
       },
     })
-    viewer.content = new WebContentsView({
-      webPreferences: {
-        contextIsolation: true,
-        sandbox: true,
-        nodeIntegration: false,
-        partition: "persist:viewer",
-        autoplayPolicy: "document-user-activation-required",
-      },
-    })
     mainWindow.contentView.addChildView(viewer.toolbar)
-    mainWindow.contentView.addChildView(viewer.content)
 
     // 工具栏 IPC
     ipcMain.handle("viewer:back", () => { if (viewer.content) viewer.content.webContents.navigationHistory.goBack() })
@@ -867,15 +934,48 @@ function openViewer(url) {
       } catch (_) { return null }
     })
 
-    // 内容页导航事件 -> 更新地址栏（轮询作为主路径，事件作为补充）
-    const sendUrl = (u) => {
-      if (viewer.toolbar && !viewer.toolbar.webContents.isDestroyed()) {
-        viewer.toolbar.webContents.send("viewer:url", u || "")
-      }
-    }
+    viewer.toolbar.webContents.loadFile(VIEWER_HTML)
+  }
 
-    // 注入禁止媒体自动播放 + 广告拦截 CSS+JS（每次页面加载后执行）
-    const AD_BLOCK_CSS = `
+  createViewerContent()
+
+  viewer.active = true
+  viewer.content.webContents.loadURL(url)
+  // 记录阅读历史
+  try {
+    const items = JSON.parse(fs.readFileSync(HISTORY_PATH, "utf8"))
+    items.unshift({ url, title: url, readAt: Date.now() })
+    const deduped = items.filter((h, i, a) => a.findIndex(x => x.url === h.url) === i).slice(0, 200)
+    fs.writeFileSync(HISTORY_PATH, JSON.stringify(deduped, null, 2))
+  } catch (_) {
+    fs.writeFileSync(HISTORY_PATH, JSON.stringify([{ url, title: url, readAt: Date.now() }], null, 2))
+  }
+  layoutViewer()
+  updateMenu()
+}
+
+// 每次打开重建内容视图：Electron WebContentsView 在部分平台（Linux/Wayland）
+// 经历 removeChildView 后再次 addChildView 可能不再绘制（内容透明、加载不可见）。
+// 销毁旧实例、每次走全新创建路径（等价于首次打开），彻底规避该合成层 bug。
+function createViewerContent() {
+  if (viewer.content) {
+    try { mainWindow.contentView.removeChildView(viewer.content) } catch (_) {}
+    try { viewer.content.webContents.destroy() } catch (_) {}
+    viewer.content = null
+  }
+  viewer.content = new WebContentsView({
+    webPreferences: {
+      contextIsolation: true,
+      sandbox: true,
+      nodeIntegration: false,
+      partition: "persist:viewer",
+      autoplayPolicy: "document-user-activation-required",
+    },
+  })
+  mainWindow.contentView.addChildView(viewer.content)
+  const wc = viewer.content.webContents
+  // 注入禁止媒体自动播放 + 广告拦截 CSS+JS（每次页面加载后执行）
+  const AD_BLOCK_CSS = `
 /* —— 禁止媒体自动播放 —— */
 video{--muted:1}video,audio{autoplay:0!important;-webkit-autoplay:0!important}video[autoplay],audio[autoplay]{display:none!important}
 
@@ -1024,19 +1124,19 @@ article, .article, .article-content, .article-body, .content-article,
       document.addEventListener('keydown', function(){ window.__nnAllowPlay = true; }, {passive:true, capture:true});
     })();`
 
-    viewer.content.webContents.on("did-navigate", (_e, u) => { sendUrl(u) })
-    viewer.content.webContents.on("did-navigate-in-page", (_e, u, isMain) => { if (isMain) sendUrl(u) })
-    viewer.content.webContents.on("did-finish-load", () => {
-      sendUrl(viewer.content.webContents.getURL())
-    })
+  wc.on("did-navigate", (_e, u) => { sendViewerUrl(u) })
+  wc.on("did-navigate-in-page", (_e, u, isMain) => { if (isMain) sendViewerUrl(u) })
+  wc.on("did-finish-load", () => {
+    sendViewerUrl(wc.getURL())
+  })
     // dom-ready: 尽早注入禁止自动播放 + 内容智能（在页面脚本执行前）
-    viewer.content.webContents.on("dom-ready", () => {
-      if (!viewer.content) return
-      try {
-        viewer.content.webContents.insertCSS(AD_BLOCK_CSS)
-        viewer.content.webContents.executeJavaScript(NO_AUToplay_JS, true)
-        // 内容智能注入：阅读时间 + 关键词高亮支持
-        viewer.content.webContents.executeJavaScript(`
+  wc.on("dom-ready", () => {
+    if (wc.isDestroyed()) return
+    try {
+      wc.insertCSS(AD_BLOCK_CSS)
+      wc.executeJavaScript(NO_AUToplay_JS, true)
+      // 内容智能注入：阅读时间 + 关键词高亮支持
+      wc.executeJavaScript(`
           (function() {
             if (window.__nndSmartInjected) return;
             window.__nndSmartInjected = true;
@@ -1089,51 +1189,28 @@ article, .article, .article-content, .article-body, .content-article,
               });
             };
           })();
-        `, true)
-        console.log("[viewer] 广告拦截 + 禁止自动播放 + 内容智能已注入")
-      } catch (e) { console.warn("[viewer] 注入失败:", e) }
-    })
-    viewer.content.webContents.setWindowOpenHandler(({ url: u }) => {
-      if (u) viewer.content.webContents.loadURL(u)
-      return { action: "deny" }
-    })
+      `, true)
+      console.log("[viewer] 广告拦截 + 禁止自动播放 + 内容智能已注入")
+    } catch (e) { console.warn("[viewer] 注入失败:", e) }
+  })
+  wc.setWindowOpenHandler(({ url: u }) => {
+    if (u) wc.loadURL(u)
+    return { action: "deny" }
+  })
 
-    viewer.toolbar.webContents.loadFile(VIEWER_HTML)
   }
-
-  viewer.active = true
-  viewer.content.webContents.loadURL(url)
-  // 记录阅读历史
-  try {
-    const items = JSON.parse(fs.readFileSync(HISTORY_PATH, "utf8"))
-    items.unshift({ url, title: url, readAt: Date.now() })
-    const deduped = items.filter((h, i, a) => a.findIndex(x => x.url === h.url) === i).slice(0, 200)
-    fs.writeFileSync(HISTORY_PATH, JSON.stringify(deduped, null, 2))
-  } catch (_) {
-    fs.writeFileSync(HISTORY_PATH, JSON.stringify([{ url, title: url, readAt: Date.now() }], null, 2))
-  }
-  layoutViewer()
-  updateMenu()
-}
 
 function closeViewer() {
   if (!viewer.active) return
   viewer.active = false
   layoutViewer()
   updateMenu()
-  // 主动暂停所有媒体播放，再停止加载释放资源
+  // 销毁内容视图：立即停止媒体与加载，且下次打开为全新实例
+  // （原 stop() + removeChildView 方案在 Linux/Wayland 下会导致二次打开内容透明不绘制）
   if (viewer.content) {
-    try {
-      viewer.content.webContents.executeJavaScript(
-        `(function(){
-          document.querySelectorAll('video,audio').forEach(function(m){
-            try { m.pause(); m.currentTime = 0; } catch(e){}
-          });
-        })()`,
-        true
-      )
-    } catch (_) {}
-    try { viewer.content.webContents.stop() } catch (_) {}
+    try { mainWindow.contentView.removeChildView(viewer.content) } catch (_) {}
+    try { viewer.content.webContents.destroy() } catch (_) {}
+    viewer.content = null
   }
 }
 

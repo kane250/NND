@@ -7,7 +7,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { sources } from "../types"
 import { getSourceData, getCustomFeedData } from "../api"
 import type { NewsItem, SourceResponse, SourceID } from "../types"
-import { getStarredSources, toggleStarred, getCustomRssFeeds, addBookmark, type CustomRssFeed } from "../storage"
+import { getStarredSources, toggleStarred, getCustomRssFeeds, addBookmark, getSourceLimitModes, setSourceLimit, type CustomRssFeed } from "../storage"
 import { openArticle, shareArticle, haptic, showToast } from "../mobile-utils"
 
 // 栏目定义（id 与源元数据 column 对应）
@@ -54,9 +54,29 @@ export function NewsCard({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [inView, setInView] = useState(false)
+  const [limit, setLimit] = useState<number>(10)
   const cardRef = useRef<HTMLDivElement>(null)
   /** 是否已发起过请求（懒加载守卫：仅进入视口才请求） */
   const fetchedRef = useRef(false)
+
+  // 读取该源持久化的条数模式（10 | 25）
+  useEffect(() => {
+    let alive = true
+    getSourceLimitModes().then((modes) => {
+      if (alive && modes[source.id] === 25) setLimit(25)
+    })
+    return () => { alive = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [source.id])
+
+  // 点击源标题：在 10 ↔ 25 条之间切换（与桌面端行为一致）
+  const toggleLimit = useCallback(async () => {
+    const next = limit === 25 ? 10 : 25
+    setLimit(next)
+    await haptic("light")
+    showToast(`${source.name}：${next === 25 ? "显示最多 25 条" : "显示 10 条"}`)
+    setSourceLimit(source.id, next)
+  }, [limit, source.id, source.name])
 
   const fetchData = useCallback(
     async (force = false) => {
@@ -120,7 +140,7 @@ export function NewsCard({
   return (
     <div ref={cardRef} className="card" style={{ borderLeftColor: starred ? "var(--accent)" : "var(--border)" }}>
       <div className="card-header">
-        <div className="card-title">
+        <div className="card-title" onClick={toggleLimit} style={{ cursor: "pointer" }} title={`点击切换显示条数（当前 ${limit} 条）`}>
           <span className="card-name">{source.name}</span>
           {source.subtitle && <span className="card-subtitle">{source.subtitle}</span>}
         </div>
@@ -152,7 +172,7 @@ export function NewsCard({
       {data && data.items && data.items.length > 0 && (
         <div className="card-body">
           <ul className="news-list">
-            {data.items.slice(0, 10).map((item: NewsItem, index: number) => (
+            {data.items.slice(0, limit).map((item: NewsItem, index: number) => (
               <NewsListItem key={item.id || index} item={item} index={index} type={source.type} sourceName={source.name + (source.subtitle ? " " + source.subtitle : "")} />
             ))}
           </ul>

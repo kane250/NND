@@ -4,7 +4,7 @@
 
 由 TeleAgent 打包发布，致敬原项目 [NewsNow](https://github.com/newsnext/newsnow)。
 
-当前版本：**v3.0.4**
+当前版本：**v3.0.5**
 
 ---
 
@@ -293,6 +293,7 @@ npx cap sync ios && npx cap open ios
 
 | 版本 | 主要变更 |
 | --- | --- |
+| v3.0.5 | 桌面端修复内置阅读器二次打开内容透明不可见（Linux/Wayland 下 WebContentsView 移除后重挂不绘制的合成层 bug，改为每次打开重建内容视图）；双端新增源条数切换：点击源标题在 10 ↔ 25 条之间切换（每源独立、持久化，桌面同名源按徽标区分）；桌面"关于"版本号动态读取 package.json；移动端首次启动默认关注每分类一个源 |
 | v3.0.4 | 修复安卓真机顶部过大空白（WebView≥140 自动填充 safe-area 变量与原生 margin 双重叠加，CSS 变量改名规避）；启动画面保持到首页首屏数据就绪才淡出（含 5s 超时兑底）；内容懒加载优化：IntersectionObserver 优先加载可见源（视口外零请求，52 源并发降至视口附近） |
 | v3.0.3 | 修复安卓版真机状态栏遮挡（小米 HyperOS 3.0/Android 16 验证通过）：绕开 WindowInsets（部分 ROM 劫持），直接读取系统状态栏高度资源并以 LayoutParams.topMargin 物理下移 WebView；源卡片限 5 条 → 10 条 |
 | v3.0.2 | 安卓版 UI 修复 4 项：状态栏遮挡（overlay=false）、底部图标放大（24px）、分类 chips 触控滑动（pan-x + snap）、源卡片高度自适应限 5 条（去内部滚动） |

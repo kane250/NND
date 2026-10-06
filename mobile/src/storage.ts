@@ -121,7 +121,25 @@ export async function clearHistory(): Promise<void> {
   await storageSet("history", [])
 }
 
+/** 首次启动默认关注的源（每个分类一个）：仅初始化一次，之后以用户手动修改为准 */
+const DEFAULT_STARRED = [
+  "zhihu", // 最热 - 知乎
+  "ithome", // 实时 - IT之家
+  "hackernews", // 科技 - Hacker News
+  "thepaper", // 国内 - 澎湃新闻
+  "zaobao", // 国际 - 联合早报
+  "wallstreetcn-news", // 财经 - 华尔街见闻
+  "hupu", // 体育 - 虎扑
+]
+
 export async function getStarredSources(): Promise<string[]> {
+  const inited = await storageGet<boolean>("starred_initialized", false)
+  if (!inited) {
+    // 首次启动：写入默认关注并标记已初始化，之后不再自动覆盖
+    await storageSet("starred", [...DEFAULT_STARRED])
+    await storageSet("starred_initialized", true)
+    return [...DEFAULT_STARRED]
+  }
   return storageGet<string[]>("starred", [])
 }
 
@@ -159,6 +177,22 @@ export async function removeCustomRssFeed(id: string): Promise<CustomRssFeed[]> 
 
 export async function setCustomRssFeeds(feeds: CustomRssFeed[]): Promise<void> {
   await storageSet("customRss", feeds)
+}
+
+// ---------- 源条数模式（点击源标题在 10 ↔ 25 条之间切换，与桌面端一致） ----------
+
+/** 获取全部源的条数模式（key: 源 id，value: 10 | 25） */
+export async function getSourceLimitModes(): Promise<Record<string, number>> {
+  const modes = await storageGet<Record<string, number>>("src_limit_modes", {})
+  return (modes && typeof modes === "object") ? modes : {}
+}
+
+/** 设置单个源的条数模式并返回更新后的全量模式 */
+export async function setSourceLimit(id: string, limit: number): Promise<Record<string, number>> {
+  const modes = await getSourceLimitModes()
+  modes[id] = limit === 25 ? 25 : 10
+  await storageSet("src_limit_modes", modes)
+  return modes
 }
 
 export async function getThemeMode(): Promise<ThemeMode> {
