@@ -6,6 +6,20 @@
 
 当前版本：**v3.0.5**
 
+## 下载地址
+
+> Gitee 国内直链，手机可直接点击下载。Gitee 下载会弹验证码（防盗链），输入即可。
+
+| 平台 | 安装包（v3.0.5） |
+| --- | --- |
+| **Android** | [NND-v3.0.5-android.apk](https://gitee.com/kane25000/NND/releases/download/v3.0.5/NND-v3.0.5-android.apk)（3.7MB） |
+| Linux（Arch/Manjaro） | [NND-3.0.5-x86_64.pkg.tar.zst](https://gitee.com/kane25000/NND/releases/download/v3.0.5/NND-3.0.5-x86_64.pkg.tar.zst) |
+| Linux（Debian/Ubuntu） | [NND-3.0.5-amd64.deb](https://gitee.com/kane25000/NND/releases/download/v3.0.5/NND-3.0.5-amd64.deb) |
+| Linux（通用免安装） | [NND-3.0.5-x86_64.AppImage](https://gitee.com/kane25000/NND/releases/download/v3.0.5/NND-3.0.5-x86_64.AppImage) |
+| Windows | [NND-3.0.5-win-x64-setup.exe](https://gitee.com/kane25000/NND/releases/download/v3.0.5/NND-3.0.5-win-x64-setup.exe) |
+
+全部历史版本与源码包：[Gitee 发行版](https://gitee.com/kane25000/NND/releases) · [GitHub Releases](https://github.com/kane250/NND/releases)（国际网络更快）
+
 ---
 
 ## 功能特性
