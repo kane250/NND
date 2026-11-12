@@ -97,7 +97,7 @@ jobs:
           path: mobile/release/*.apk
 
   build-ios:
-    runs-on: macos-14
+    runs-on: macos-15
     defaults:
       run:
         working-directory: mobile
@@ -137,7 +137,7 @@ jobs:
           path: mobile/release/*.ipa
 
   release:
-    needs: [build-linux, build-windows, build-android, build-ios]
+    needs: [build-linux, build-windows, build-android]
     runs-on: ubuntu-22.04
     if: startsWith(github.ref, 'refs/tags/v')
     permissions:
@@ -158,4 +158,3 @@ jobs:
             artifacts/linux-build/*
             artifacts/windows-build/*
             artifacts/android-build/*
-            artifacts/ios-build/*
