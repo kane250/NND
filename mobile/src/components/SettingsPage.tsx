@@ -19,7 +19,7 @@ import { generateOpml, parseOpml } from "../opml"
 import { showToast, haptic } from "../mobile-utils"
 import { rss2json } from "../rss"
 
-const APP_VERSION = "3.0.5"
+const APP_VERSION = "3.0.6"
 
 // ---------- 主题 ----------
 

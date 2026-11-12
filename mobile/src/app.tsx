@@ -4,7 +4,7 @@
  * 数据层：直接调用本地 getter / rss2json（无需后端）
  */
 
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback, useRef } from "react"
 import { createRoot } from "react-dom/client"
 import { getThemeMode, setThemeMode, getStarredSources, type ThemeMode } from "./storage"
 import { setStatusBar, showToast, hideSplash } from "./mobile-utils"
@@ -42,6 +42,58 @@ function App() {
   const [starred, setStarred] = useState<string[]>([])
   const [showSearch, setShowSearch] = useState(false)
   const [theme, setTheme] = useState<ThemeMode>("system")
+  const [showExitConfirm, setShowExitConfirm] = useState(false)
+
+  // 返回键三级导航所需的最新状态引用（避免监听器闭包过期）
+  const tabRef = useRef<TabId>("home")
+  const showSearchRef = useRef(false)
+  useEffect(() => { tabRef.current = tab }, [tab])
+  useEffect(() => { showSearchRef.current = showSearch }, [showSearch])
+
+  // 返回键逻辑：任意界面先回页首 → 回主页 → 主页确认退出
+  useEffect(() => {
+    let removeFn: (() => void) | null = null
+    let cancelled = false
+    const setup = async () => {
+      const cap = (globalThis as any).Capacitor
+      if (!cap?.isNativePlatform?.()) return
+      try {
+        const m = await import("@capacitor/app")
+        const listener = await m.App.addListener("backButton", () => {
+          // 1) 搜索浮层打开 → 先关闭搜索
+          if (showSearchRef.current) { setShowSearch(false); return }
+          // 2) 非主页：不在页首→回页首；已在页首→回主页
+          if (tabRef.current !== "home") {
+            if (window.scrollY > 0) { window.scrollTo({ top: 0 }); return }
+            setTab("home")
+            window.scrollTo({ top: 0 })
+            return
+          }
+          // 3) 主页：不在页首→回页首；已在页首→提示确认退出
+          if (window.scrollY > 0) { window.scrollTo({ top: 0 }); return }
+          setShowExitConfirm(true)
+        })
+        if (!cancelled) removeFn = () => listener.remove()
+        else listener.remove()
+      } catch (_) {}
+    }
+    setup()
+    return () => { cancelled = true; if (removeFn) removeFn() }
+  }, [])
+
+  // 确认退出：调用原生 exitApp
+  const doExitApp = useCallback(async () => {
+    try {
+      const cap = (globalThis as any).Capacitor
+      if (cap?.isNativePlatform?.()) {
+        const m = await import("@capacitor/app")
+        await m.App.exitApp()
+        return
+      }
+    } catch (_) {}
+    // 非原生环境兜底：关闭当前窗口/无操作
+    if (typeof window !== "undefined" && window.close) window.close()
+  }, [])
 
   // 初始化：主题 + 星标 + 系统主题跟随
   useEffect(() => {
@@ -133,6 +185,19 @@ function App() {
 
       {/* 搜索浮层 */}
       {showSearch && <SearchPage onClose={() => setShowSearch(false)} starredIds={starred} />}
+
+      {/* 返回键确认退出浮层 */}
+      {showExitConfirm && (
+        <div className="exit-confirm-mask" onClick={() => setShowExitConfirm(false)}>
+          <div className="exit-confirm" onClick={(e) => e.stopPropagation()}>
+            <p className="exit-confirm-title">确定要退出 NND 吗？</p>
+            <div className="exit-confirm-btns">
+              <button className="btn-cancel" onClick={() => setShowExitConfirm(false)}>取消</button>
+              <button className="btn-exit" onClick={() => { setShowExitConfirm(false); doExitApp() }}>退出</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 底部导航 */}
       <nav className="tabbar">
